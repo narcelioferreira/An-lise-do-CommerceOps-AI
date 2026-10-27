@@ -25,8 +25,11 @@ class Settings(BaseSettings):
     langfuse_secret_key: SecretStr | None = None
     langfuse_base_url: str = "https://cloud.langfuse.com"
 
-    # Provedor de LLM: só usado no health check profundo por enquanto (ex.: Ollama local).
+    # Provedor de LLM com API no formato OpenAI (decisão D9): Groq por padrão, Ollama como
+    # alternativa local. O modelo vem do ambiente porque o catálogo gratuito muda com frequência.
     llm_base_url: str | None = None
+    llm_api_key: SecretStr | None = None
+    llm_model: str | None = None
 
     @property
     def langfuse_enabled(self) -> bool:

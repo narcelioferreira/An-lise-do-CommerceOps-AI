@@ -98,6 +98,7 @@ pgvector e o build da imagem.
 
 - `docs/01_politicas_v1.1.md`: decisões D1–D8 e formato dos cenários de avaliação.
 - `docs/02_auditoria_dados.md`: achados dos dados e suas implicações.
+- `docs/03_arquitetura.md`: decisões de stack (D9: LLM Groq via API compatível com OpenAI).
 - `reports/audit/audit.md`: números atuais da auditoria (gerado).
 
 Se uma mudança contrariar uma dessas decisões, registre a nova decisão no documento correspondente

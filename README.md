@@ -101,6 +101,7 @@ docs/                    decisões e análises
 - [Pacote de políticas v1.1: decisões](docs/01_politicas_v1.1.md)
 - [Catálogo de políticas (gerado)](docs/catalogo_politicas.md)
 - [Auditoria dos dados v2](docs/02_auditoria_dados.md)
+- [Arquitetura e decisões técnicas](docs/03_arquitetura.md) (D9: LLM Groq)
 
 ## Limitações conhecidas
 

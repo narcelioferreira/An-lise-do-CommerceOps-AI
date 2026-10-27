@@ -184,3 +184,26 @@ def test_health(client):
     deep = client.get("/health/deep").json()
     assert deep["checks"]["llm"] == "não configurado"
     assert deep["checks"]["langfuse"] == "desligado"
+
+
+def test_health_deep_consulta_models_do_llm_com_chave(client, monkeypatch):
+    from pydantic import SecretStr
+
+    from commerceops.config import get_settings
+
+    settings = get_settings()
+    monkeypatch.setattr(settings, "llm_base_url", "https://api.groq.com/openai/v1/")
+    monkeypatch.setattr(settings, "llm_api_key", SecretStr("gsk-teste"))
+    calls = []
+
+    class Resp:
+        def raise_for_status(self):
+            pass
+
+    def fake_get(url, headers, timeout):
+        calls.append((url, headers))
+        return Resp()
+
+    monkeypatch.setattr("commerceops.api.main.httpx.get", fake_get)
+    assert client.get("/health/deep").json()["checks"]["llm"] == "ok"
+    assert calls == [("https://api.groq.com/openai/v1/models", {"Authorization": "Bearer gsk-teste"})]

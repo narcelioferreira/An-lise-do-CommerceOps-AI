@@ -92,7 +92,15 @@ def deep(
 
     if settings.llm_base_url:
         try:
-            httpx.get(settings.llm_base_url, timeout=3).raise_for_status()
+            # /models existe no Groq e no Ollama (API compatível com OpenAI) e não consome tokens
+            headers = (
+                {"Authorization": f"Bearer {settings.llm_api_key.get_secret_value()}"}
+                if settings.llm_api_key
+                else {}
+            )
+            httpx.get(
+                f"{settings.llm_base_url.rstrip('/')}/models", headers=headers, timeout=3
+            ).raise_for_status()
             checks["llm"] = "ok"
         except httpx.HTTPError:
             checks["llm"] = "erro"
