@@ -1,0 +1,4 @@
+# Falsos positivos revisados à mão. Uma linha por ocorrência (commit:arquivo:regra:linha); nunca
+# ignorar uma regra ou um arquivo inteiro.
+# generic-api-key casou com "hmac_key=self.hmac_key" (repasse de variável, sem segredo).
+88f743beb42e941979d47f5ba15b5b5e80bbf8b9:src/commerceops/agent.py:generic-api-key:122
