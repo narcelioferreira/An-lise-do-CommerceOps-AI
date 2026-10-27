@@ -11,6 +11,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
   -v app_user="$APP_DB_USER" -v app_password="$APP_DB_PASSWORD" <<'SQL'
 CREATE ROLE :"app_user" LOGIN PASSWORD :'app_password';
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
+-- Só USAGE (sem CREATE) em public: é onde a extensão pgvector registra o tipo vector e o operador <=>
+GRANT USAGE ON SCHEMA public TO :"app_user";
 GRANT USAGE ON SCHEMA olist, sim, kb TO :"app_user";
 GRANT SELECT ON ALL TABLES IN SCHEMA olist TO :"app_user";
 GRANT SELECT ON ALL TABLES IN SCHEMA kb TO :"app_user";
