@@ -27,7 +27,13 @@ from commerceops.knowledge.retrieval import ChunkRow, Method, Retriever
 from commerceops.llm import ChatModel
 from commerceops.observability import hash_id
 from commerceops.tools.actions import ActionRepository, Outcome, execute
-from commerceops.tools.orders import OrderRepository, OrderSummary, get_order_summary, verify_customer
+from commerceops.tools.orders import (
+    OrderRepository,
+    OrderSummary,
+    VerifiedCustomer,
+    get_order_summary,
+    verify_customer,
+)
 
 MAX_MESSAGE_CHARS = 1000
 MAX_ANSWER_CHARS = 1200
@@ -50,6 +56,11 @@ FORBIDDEN = [
         r"(?:senha|n[úu]mero (?:completo )?do cartão|código de segurança|dados bancários)",
         # o cliente já foi identificado antes do LLM entrar; pedir de novo confunde e ensina a repassar dados
         r"(?:informe|envie|digite|passe|mande|confirme).{0,40}(?:n[úu]mero do pedido|\bcep\b)",
+        # nada é negado automaticamente: fora das regras, o caso vai para uma pessoa (achado num trace
+        # de desenvolvimento: "a devolução não será aceita" passou pelo validador)
+        r"\bnão (?:será|serão|poderá ser|poderão ser|pode ser|podem ser) "
+        r"(?:aceit|aprovad|devolvid|reembolsad|trocad)",
+        r"\bnão (?:aceitamos|realizamos|fazemos|aprovamos) (?:a |o )?(?:devolu|troca|reembolso|estorno)",
     )
 ]
 ESCALATION_WORDS = re.compile(r"encaminh|equipe|especialista|pessoa")
@@ -117,21 +128,8 @@ class Agent:
             cls = UNCLEAR
             failures.append(f"classificar: {type(e).__name__}")
         signals = set(cls.signals) | detect_signals(req.message)
-        decision = decide(
-            cls.intent,
-            summary,
-            self.kb,
-            signals=signals,
-            refund_status=self.repo.refund_status(customer.customer_unique_id, summary.order_id)
-            if cls.intent == "reembolso"
-            else None,
-            tickets=self.repo.customer_tickets(customer.customer_unique_id)
-            if cls.intent == "reclamar_do_atendimento"
-            else None,
-        )
-        outcome = execute(
-            self.repo, customer, summary, decision, hmac_key=self.hmac_key, scenario_id=req.scenario_id
-        )
+        decision = self.decide(cls.intent, customer, summary, signals)
+        outcome = self.execute(customer, summary, decision, req.scenario_id)
         chunks = self.context(req.message, cls.intent, summary, decision)
         facts = _facts(summary)
         try:
@@ -141,7 +139,7 @@ class Agent:
             failures.append(f"redigir: {type(e).__name__}")
         allowed = {c.doc_id for c in chunks}
         context_text = " ".join(c.text for c in chunks)
-        errors = validate(draft, decision, allowed, facts, context_text) if draft else ["sem resposta do LLM"]
+        errors = self.validate(draft, decision, allowed, facts, context_text)
         answer = draft if not errors else fallback(decision, outcome)
 
         get_client().update_current_span(
@@ -173,6 +171,38 @@ class Agent:
             validation_errors=errors,
             rejected_draft=draft if errors and draft else None,
         )
+
+    # Decidir, executar e validar são código, mas têm span próprio para o trace mostrar os 8 passos.
+    @observe(name="decidir", capture_input=False)
+    def decide(
+        self, intent: str, customer: VerifiedCustomer, summary: OrderSummary, signals: set[Signal]
+    ) -> Decision:
+        return decide(
+            intent,
+            summary,
+            self.kb,
+            signals=signals,
+            refund_status=self.repo.refund_status(customer.customer_unique_id, summary.order_id)
+            if intent == "reembolso"
+            else None,
+            tickets=self.repo.customer_tickets(customer.customer_unique_id)
+            if intent == "reclamar_do_atendimento"
+            else None,
+        )
+
+    @observe(name="executar", capture_input=False)
+    def execute(
+        self, customer: VerifiedCustomer, summary: OrderSummary, decision: Decision, scenario_id: str | None
+    ) -> Outcome:
+        return execute(
+            self.repo, customer, summary, decision, hmac_key=self.hmac_key, scenario_id=scenario_id
+        )
+
+    @observe(name="validar", capture_input=False)
+    def validate(
+        self, draft: str, decision: Decision, allowed: set[str], facts: dict, context_text: str
+    ) -> list[str]:
+        return validate(draft, decision, allowed, facts, context_text) if draft else ["sem resposta do LLM"]
 
     @observe(name="classificar")
     def classify(self, message: str) -> Classification:

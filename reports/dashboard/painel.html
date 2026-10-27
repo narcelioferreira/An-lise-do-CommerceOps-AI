@@ -1,0 +1,355 @@
+<title>Painel CommerceOps AI</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: relatório de operação em faixas — resumo em números no topo, gráficos em pares, notas de método no rodapé. */
+:root {
+  --papel: #f2f5f8; --superficie: #ffffff; --tinta: #101922; --tinta-2: #47535f; --tinta-3: #6f7b87;
+  --linha: #dce3ea; --s1: #2a78d6; --s1-fundo: rgba(42,120,214,.12); --s2: #eb6834; --s2-fundo: rgba(235,104,52,.12);
+  --bom: #0a7d0a; --chip-llm: #ece8fb; --chip-llm-tinta: #4b3db8;
+  --display: "Archivo", "Liberation Sans Narrow", "Arial Narrow", sans-serif;
+  --texto: "IBM Plex Sans", "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", "DejaVu Sans Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --papel: #0e1318; --superficie: #161d24; --tinta: #edf1f5; --tinta-2: #b2bcc6; --tinta-3: #8693a0;
+  --linha: #28323c; --s1: #3987e5; --s1-fundo: rgba(57,135,229,.18); --s2: #e0703f; --s2-fundo: rgba(224,112,63,.18);
+  --bom: #3fbf3f; --chip-llm: #2a2550; --chip-llm-tinta: #b9b0f5; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --papel: #0e1318; --superficie: #161d24; --tinta: #edf1f5; --tinta-2: #b2bcc6; --tinta-3: #8693a0;
+  --linha: #28323c; --s1: #3987e5; --s1-fundo: rgba(57,135,229,.18); --s2: #e0703f; --s2-fundo: rgba(224,112,63,.18);
+  --bom: #3fbf3f; --chip-llm: #2a2550; --chip-llm-tinta: #b9b0f5; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--papel); color: var(--tinta); font: 15px/1.5 var(--texto); margin: 0; }
+.pagina { max-width: 1320px; margin: 0 auto; padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 22px; }
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; }
+.marca { font: 600 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--tinta-3); }
+h1 { font: 800 clamp(26px, 3.4vw, 38px)/1.05 var(--display); font-stretch: 85%; margin: 6px 0 0; text-wrap: balance; }
+.sub { color: var(--tinta-2); margin: 6px 0 0; max-width: 70ch; }
+nav { display: flex; gap: 4px; background: var(--superficie); border: 1px solid var(--linha); border-radius: 10px; padding: 4px; }
+nav a { font: 600 14px/1 var(--texto); color: var(--tinta-2); text-decoration: none; padding: 10px 16px; border-radius: 7px; }
+nav a[aria-current="page"] { background: var(--tinta); color: var(--papel); }
+nav a:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
+.vista { display: grid; gap: 22px; }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: var(--linha);
+  border: 1px solid var(--linha); border-radius: 12px; overflow: hidden; }
+.kpi { background: var(--superficie); padding: 16px 18px 18px; display: grid; gap: 4px; align-content: start; }
+.kpi .r { font: 500 12px/1.3 var(--mono); color: var(--tinta-3); text-transform: uppercase; letter-spacing: .05em; }
+.kpi .v { font: 700 30px/1.1 var(--display); font-stretch: 90%; font-variant-numeric: tabular-nums; }
+.kpi .n { font-size: 13px; color: var(--tinta-2); }
+
+.par { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)); gap: 22px; }
+.cartao { background: var(--superficie); border: 1px solid var(--linha); border-radius: 12px; padding: 18px 20px 16px;
+  display: grid; gap: 10px; align-content: start; min-width: 0; }
+.cartao h2 { font: 700 19px/1.2 var(--display); font-stretch: 92%; margin: 0; text-wrap: balance; }
+.cartao .leitura { margin: 0; color: var(--tinta-2); font-size: 14px; }
+.cartao .fonte { margin: 0; font: 12px/1.4 var(--mono); color: var(--tinta-3); }
+.grafico { min-width: 0; }
+.legenda { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--tinta-2); }
+.legenda i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+svg { display: block; overflow: visible; }
+svg text { font-family: var(--texto); }
+.grade { stroke: var(--linha); stroke-width: 1; }
+.ref { stroke: var(--tinta-3); stroke-width: 1; stroke-dasharray: 4 4; }
+.eixo { fill: var(--tinta-3); font-size: 12px; font-variant-numeric: tabular-nums; }
+.rotulo { fill: var(--tinta-2); font-size: 13px; }
+.valor { fill: var(--tinta); font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.marca-1 { fill: var(--s1); } .marca-2 { fill: var(--s2); }
+.area { fill: var(--s2-fundo); } .traco { fill: none; stroke: var(--s2); stroke-width: 2; stroke-linejoin: round; }
+.ponto { fill: var(--s2); stroke: var(--superficie); stroke-width: 2; }
+.alvo { fill: transparent; }
+.alvo:hover { fill: var(--s1-fundo); }
+.dica { position: fixed; z-index: 20; pointer-events: none; background: var(--tinta); color: var(--papel);
+  font: 500 13px/1.35 var(--texto); padding: 6px 9px; border-radius: 6px; max-width: 280px; }
+
+.pilha { display: flex; height: 22px; border-radius: 6px; overflow: hidden; gap: 2px; }
+.pilha span { display: block; height: 100%; }
+.pag { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 10px; font-size: 14px; align-items: center; }
+.pag b { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+.fluxo { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; counter-reset: passo; }
+.passo { border: 1px solid var(--linha); border-radius: 10px; padding: 10px 12px; display: grid; gap: 4px; align-content: start; }
+.passo b { font: 600 14px/1.2 var(--texto); }
+.passo b::before { counter-increment: passo; content: counter(passo) ". "; color: var(--tinta-3); }
+.passo span { font-size: 12.5px; color: var(--tinta-2); line-height: 1.35; }
+.chip { justify-self: start; font: 500 11px/1 var(--mono); padding: 4px 7px; border-radius: 999px;
+  background: var(--s1-fundo); color: var(--s1); text-transform: uppercase; letter-spacing: .04em; }
+.chip.llm { background: var(--chip-llm); color: var(--chip-llm-tinta); }
+
+.comparacao { display: grid; gap: 12px; }
+.metrica { display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: 6px 14px; align-items: center; }
+.metrica > span { font-size: 14px; color: var(--tinta-2); grid-row: span 2; }
+.barra { display: grid; grid-template-columns: 1fr 64px; gap: 8px; align-items: center; }
+.barra div { height: 12px; background: var(--linha); border-radius: 4px; overflow: hidden; }
+.barra div i { display: block; height: 100%; border-radius: 0 4px 4px 0; }
+.barra b { font: 600 13px/1 var(--texto); font-variant-numeric: tabular-nums; text-align: right; }
+
+.conversas { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 14px; }
+.conversa { border: 1px solid var(--linha); border-radius: 10px; padding: 14px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.conversa h3 { margin: 0; font: 600 12px/1.3 var(--mono); color: var(--tinta-3); text-transform: uppercase; letter-spacing: .04em; }
+.msg { margin: 0; padding: 10px 12px; border-radius: 10px; font-size: 14px; }
+.msg.cliente { background: var(--papel); }
+.msg.agente { background: var(--s1-fundo); }
+.feito { display: flex; flex-wrap: wrap; gap: 6px; }
+.feito span { font: 500 12px/1 var(--texto); padding: 6px 8px; border-radius: 6px; border: 1px solid var(--linha); }
+.cascata { display: grid; gap: 6px; }
+.cascata .ln { display: grid; grid-template-columns: minmax(150px, 210px) 1fr; gap: 12px; align-items: center; }
+.cascata .nm { font: 500 13px/1.2 var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cascata .tr { position: relative; height: 22px; border-left: 1px solid var(--linha); }
+.cascata .tr i { position: absolute; top: 5px; height: 12px; border-radius: 3px; min-width: 3px; }
+.cascata .tr b { position: absolute; top: 3px; font: 600 12px/1 var(--texto); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.notas { color: var(--tinta-2); font-size: 13px; display: grid; gap: 4px; margin: 0; padding-left: 18px; }
+@media (max-width: 560px) { .metrica { grid-template-columns: 1fr; } .metrica > span { grid-row: auto; } }
+</style>
+
+<div class="pagina">
+  <header>
+    <div>
+      <div class="marca">CommerceOps AI</div>
+      <h1 id="titulo">Painel da operação</h1>
+      <p class="sub" id="subtitulo"></p>
+    </div>
+    <nav aria-label="Seções do painel">
+      <a href="#operacao" data-vista="operacao">Operação</a>
+      <a href="#agente" data-vista="agente">Agente de atendimento</a>
+    </nav>
+  </header>
+
+  <section class="vista" id="v-operacao">
+    <div class="kpis" id="kpis-op"></div>
+    <div class="par">
+      <article class="cartao">
+        <h2>Pedidos por mês</h2>
+        <p class="leitura">Novembro de 2017 foi o pico, com 7.544 pedidos (Black Friday).</p>
+        <div class="grafico" id="g-pedidos"></div>
+      </article>
+      <article class="cartao">
+        <h2>Pedidos entregues com atraso, por mês da compra</h2>
+        <p class="leitura">A taxa foi de 6,8% no período, mas passou de 12% em nov/17, fev/18 e mar/18.</p>
+        <div class="grafico" id="g-atraso-mes"></div>
+      </article>
+    </div>
+    <div class="par">
+      <article class="cartao">
+        <h2>Atraso por estado do cliente</h2>
+        <p class="leitura">Os 12 estados com mais entregas. Em laranja, os que ficam acima da média.</p>
+        <div class="grafico" id="g-uf"></div>
+      </article>
+      <article class="cartao">
+        <h2>Nota média da avaliação, por situação da entrega</h2>
+        <p class="leitura">Pedidos atrasados recebem notas bem menores. É uma associação: nota baixa não prova atraso.</p>
+        <div class="grafico" id="g-nota"></div>
+        <h2 style="margin-top:12px">Forma de pagamento (valor pago)</h2>
+        <div class="pilha" id="g-pag-pilha"></div>
+        <div class="pag" id="g-pag"></div>
+      </article>
+    </div>
+    <article class="cartao">
+      <h2>Receita por categoria (10 maiores)</h2>
+      <div class="grafico" id="g-cat"></div>
+    </article>
+    <ul class="notas" id="notas-op"></ul>
+  </section>
+
+  <section class="vista" id="v-agente" hidden>
+    <div class="kpis" id="kpis-ag"></div>
+    <article class="cartao">
+      <h2>Como uma resposta é produzida</h2>
+      <p class="leitura">O modelo de linguagem só classifica a mensagem e redige o texto. Consultas, decisões e registros são código testado.</p>
+      <div class="fluxo">
+        <div class="passo"><b>Verificar</b><span>Pedido + 5 primeiros dígitos do CEP</span><em class="chip">código</em></div>
+        <div class="passo"><b>Consultar</b><span>Estágio, atraso e prazos calculados</span><em class="chip">código</em></div>
+        <div class="passo"><b>Classificar</b><span>Intenção dentro de 15 opções fixas</span><em class="chip llm">LLM</em></div>
+        <div class="passo"><b>Decidir</b><span>Política vigente na data da compra</span><em class="chip">código</em></div>
+        <div class="passo"><b>Executar</b><span>Ocorrência, devolução ou cancelamento</span><em class="chip">código</em></div>
+        <div class="passo"><b>Contextualizar</b><span>Busca vetorial na base de políticas</span><em class="chip">código</em></div>
+        <div class="passo"><b>Redigir</b><span>Texto a partir dos fatos e da decisão</span><em class="chip llm">LLM</em></div>
+        <div class="passo"><b>Validar</b><span>Reprovou: sai uma resposta-modelo segura</span><em class="chip">código</em></div>
+      </div>
+    </article>
+    <div class="par">
+      <article class="cartao">
+        <h2>Agente completo: gpt-oss-120b × gpt-oss-20b</h2>
+        <div class="legenda"><span><i style="background:var(--s1)"></i>gpt-oss-120b (padrão)</span><span><i style="background:var(--s2)"></i>gpt-oss-20b</span></div>
+        <div class="comparacao" id="g-e3"></div>
+        <p class="fonte" id="fonte-e3"></p>
+      </article>
+      <article class="cartao">
+        <h2>Busca na base de políticas</h2>
+        <div class="legenda"><span><i style="background:var(--s1)"></i>Recall@5</span><span><i style="background:var(--s2)"></i>MRR@5</span></div>
+        <div class="comparacao" id="g-e1"></div>
+        <p class="leitura">A busca híbrida não superou a vetorial. Com 21 cenários, a diferença equivale a um cenário: é indício, não conclusão.</p>
+        <p class="fonte" id="fonte-e1"></p>
+      </article>
+    </div>
+    <div class="par">
+      <article class="cartao">
+        <h2>Latência mediana por passo (Langfuse)</h2>
+        <div class="legenda"><span><i style="background:var(--s1)"></i>gpt-oss-120b</span><span><i style="background:var(--s2)"></i>gpt-oss-20b</span></div>
+        <div class="comparacao" id="g-lat"></div>
+        <p class="leitura" id="leitura-lat"></p>
+        <p class="fonte">Traces das rodadas oficiais do E3, medidos do lado do cliente (inclui rede e fila do provedor). Fonte: scripts/langfuse_data.py</p>
+      </article>
+      <article class="cartao">
+        <h2>Trace de um atendimento: atraso grave</h2>
+        <p class="leitura">Cada ferramenta, chamada ao LLM e busca vira um span. O order_id chega só como HMAC.</p>
+        <div class="cascata" id="g-trace"></div>
+        <p class="fonte" id="fonte-trace"></p>
+      </article>
+    </div>
+    <article class="cartao">
+      <h2>Exemplos de atendimento (simulados)</h2>
+      <div class="conversas" id="conversas"></div>
+    </article>
+    <ul class="notas">
+      <li>Cenários escritos para o teste sobre pedidos reais da Olist. Políticas fictícias; conversas, ocorrências e devoluções simuladas.</li>
+      <li>Regras e gabarito foram escritos pela mesma pessoa: os acertos medem coerência entre os dois, não qualidade independente.</li>
+      <li>Uma execução por modelo. A variação entre execuções ainda não foi medida.</li>
+    </ul>
+  </section>
+</div>
+
+<script src="graficos.js"></script>
+<script src="dados.js"></script>
+<script src="langfuse.js"></script>
+<script>
+const { fmt, mes, esc } = G;
+const op = DADOS.operacao, ag = DADOS.agente, k = op.kpis;
+
+document.getElementById("subtitulo").textContent =
+  `Dados reais da Olist (Kaggle), compras de ${mes(op.janela.de)} a ${mes(op.janela.ate)}. Políticas fictícias e atendimentos simulados.`;
+
+const tiles = (el, itens) => (document.getElementById(el).innerHTML = itens
+  .map(([r, v, n]) => `<div class="kpi"><span class="r">${r}</span><span class="v">${v}</span><span class="n">${n}</span></div>`).join(""));
+
+tiles("kpis-op", [
+  ["Pedidos", fmt.int(k.pedidos), `${fmt.int(k.clientes_unicos)} clientes únicos`],
+  ["Receita bruta", fmt.mi(k.receita), "itens + frete, sem cancelados"],
+  ["Ticket médio", fmt.brl(k.ticket_medio), "por pedido com itens"],
+  ["Prazo de entrega", `${fmt.int(k.dias_entrega_mediana)} dias`, "mediana, da compra à entrega"],
+  ["Entregas atrasadas", fmt.pct(k.taxa_atraso), `${fmt.pct(k.taxa_atraso_mais_5d)} com mais de 5 dias`],
+  ["Nota média", fmt.dec(k.nota_media) + " / 5", "avaliações pós-compra"],
+]);
+
+const r120 = ag.e3["gpt-oss-120b"].resumo, r20 = ag.e3["gpt-oss-20b"].resumo;
+const fr = (m) => `${Math.round(m.media * m.n)}/${m.n}`;
+tiles("kpis-ag", [
+  ["Cenários de teste", "24", "situações simuladas de atendimento"],
+  ["Decisões corretas", fr(r120.acoes_corretas), "ações e encaminhamento (120b)"],
+  ["Aprovadas pelo validador", fr(r120.resposta_validada), `120b · o 20b teve ${fr(r20.resposta_validada)}`],
+  ["Afirmações proibidas entregues", "0", "nos dois modelos"],
+  ["Injeção de prompt", "Sem efeito", "nos dois modelos"],
+]);
+
+function desenhar() {
+  const mensal = op.mensal;
+  G.colunas(document.getElementById("g-pedidos"), {
+    titulo: "Pedidos por mês", altura: 250, passoRotulo: 3, fmtEixo: fmt.int,
+    dados: mensal.map((m) => ({ rotulo: mes(m.mes), valor: m.pedidos, destaque: m.mes === "2017-11",
+      tip: `${mes(m.mes)}: ${fmt.int(m.pedidos)} pedidos · ${fmt.mi(m.receita)}` })),
+  });
+  const picos = new Set(["2017-11", "2018-03"]);
+  G.linha(document.getElementById("g-atraso-mes"), {
+    titulo: "Taxa de atraso por mês", altura: 250, passoRotulo: 3, fmtEixo: (v) => fmt.pct(v, 0),
+    ref: { valor: k.taxa_atraso, rotulo: `média ${fmt.pct(k.taxa_atraso)}` },
+    dados: mensal.map((m) => ({ rotulo: mes(m.mes), valor: m.taxa_atraso, destaque: picos.has(m.mes),
+      rotuloValor: fmt.pct(m.taxa_atraso), tip: `${mes(m.mes)}: ${fmt.pct(m.taxa_atraso)} entregues com atraso` })),
+  });
+  const ufs = [...op.por_uf].sort((a, b) => b.taxa_atraso - a.taxa_atraso);
+  G.barras(document.getElementById("g-uf"), {
+    titulo: "Atraso por estado", margemEsq: 40, margemDir: 150, linha: 27, espessura: 14,
+    ref: { valor: k.taxa_atraso, rotulo: "média" },
+    dados: ufs.map((u) => ({ rotulo: u.uf, valor: u.taxa_atraso, destaque: u.taxa_atraso > k.taxa_atraso,
+      texto: `${fmt.pct(u.taxa_atraso)} · ${fmt.int(u.dias)} dias`,
+      tip: `${u.uf}: ${fmt.pct(u.taxa_atraso)} atrasados de ${fmt.int(u.entregues)} entregas; prazo mediano ${u.dias} dias` })),
+  });
+  G.barras(document.getElementById("g-nota"), {
+    titulo: "Nota por situação da entrega", margemEsq: 190, margemDir: 50, linha: 34, espessura: 18, max: 5,
+    dados: op.nota_por_atraso.map((f) => ({ rotulo: G.FAIXAS[f.faixa], valor: f.nota_media, destaque: f.faixa !== "no_prazo",
+      texto: fmt.dec(f.nota_media), tip: `${G.FAIXAS[f.faixa]}: nota ${fmt.dec(f.nota_media)} em ${fmt.int(f.pedidos)} pedidos` })),
+  });
+  G.barras(document.getElementById("g-cat"), {
+    titulo: "Receita por categoria", margemEsq: 170, margemDir: 90, linha: 28, espessura: 14,
+    dados: op.categorias.map((c) => ({ rotulo: G.CATEGORIAS[c.categoria] || c.categoria, valor: c.receita, texto: fmt.mi(c.receita) })),
+  });
+}
+
+const corPag = ["var(--s1)", "var(--s2)", "var(--tinta-3)", "var(--linha)"];
+const pags = Object.entries(op.pagamentos);
+document.getElementById("g-pag-pilha").innerHTML = pags
+  .map(([p, v], i) => `<span style="width:${v * 100}%;background:${corPag[i]}" data-tip="${G.PAGAMENTOS[p]}: ${fmt.pct(v)}"></span>`).join("");
+document.getElementById("g-pag").innerHTML = pags
+  .map(([p, v], i) => `<i style="width:10px;height:10px;border-radius:3px;background:${corPag[i]}"></i><span>${G.PAGAMENTOS[p]}</span><b>${fmt.pct(v)}</b>`).join("");
+
+document.getElementById("notas-op").innerHTML = [
+  "Atraso: data de entrega ao cliente posterior à data prevista, comparando datas (não horários).",
+  `Janela analítica: compras de ${op.janela.de.split("-").reverse().join("/")} a ${op.janela.ate.split("-").reverse().join("/")}. ${fmt.int(k.entregues)} pedidos entregues.`,
+  "Fonte: Brazilian E-Commerce Public Dataset by Olist (Kaggle, CC BY-NC-SA 4.0). Gerado por scripts/dashboard_data.py.",
+].map((t) => `<li>${t}</li>`).join("");
+
+const barrasHTML = (rotulo, itens) => `<div class="metrica"><span>${rotulo}</span>${itens
+  .map(([v, txt, cor]) => `<div class="barra" data-tip="${esc(txt)}"><div><i style="width:${v * 100}%;background:${cor}"></i></div><b>${txt.split(" ")[0]}</b></div>`).join("")}</div>`;
+const met = [["Intenção correta", "intencao_correta"], ["Ações e encaminhamento corretos", "acoes_corretas"],
+  ["Resposta aprovada pelo validador", "resposta_validada"], ["Sem afirmação proibida", "sem_frase_proibida"]];
+document.getElementById("g-e3").innerHTML = met.map(([r, c]) => barrasHTML(r, [
+  [r120[c].media, `${fr(r120[c])} gpt-oss-120b`, "var(--s1)"], [r20[c].media, `${fr(r20[c])} gpt-oss-20b`, "var(--s2)"]])).join("");
+document.getElementById("fonte-e3").textContent =
+  `24 cenários. No 120b, 1 cenário caiu por limite de tokens do provedor e 1 de acesso negado é medido à parte. Fonte: reports/eval/${ag.e3["gpt-oss-120b"].arquivo}`;
+const nomes = { lexical: "Lexical (tsvector)", vector: "Vetorial (bge-m3)", hybrid: "Híbrida (RRF)" };
+document.getElementById("g-e1").innerHTML = Object.entries(ag.e1.por_metodo).map(([m, v]) => barrasHTML(nomes[m], [
+  [v["recall@5"].media, `${fmt.dec(v["recall@5"].media, 3)} Recall@5`, "var(--s1)"],
+  [v["mrr@5"].media, `${fmt.dec(v["mrr@5"].media, 3)} MRR@5`, "var(--s2)"]])).join("");
+document.getElementById("fonte-e1").textContent = `21 cenários, k = ${ag.e1.k}. Fonte: reports/eval/${ag.e1.arquivo}`;
+
+const titulos = { "ENT-003-atraso-grave-01": "Atraso grave", "PRD-002-defeito-com-risco-01": "Defeito com risco",
+  "SEG-001-injecao-de-prompt-01": "Tentativa de manipulação", "DEV-001-caso-limite-versao-01": "Arrependimento" };
+document.getElementById("conversas").innerHTML = ag.exemplos.map((e) => {
+  const feito = e.actions.map((a) => G.ACOES[a] || a);
+  if (e.escalated) feito.push("Encaminhado para uma pessoa");
+  if (!feito.length) feito.push("Nada registrado");
+  return `<div class="conversa"><h3>${titulos[e.scenario_id]}</h3>
+    <p class="msg cliente">${esc(e.mensagem)}</p><p class="msg agente">${esc(e.answer)}</p>
+    <div class="feito">${feito.map((f) => `<span>${f}</span>`).join("")}</div></div>`;
+}).join("");
+
+const LF = window.LANGFUSE, la = LF.rodadas["gpt-oss-120b"], lb = LF.rodadas["gpt-oss-20b"];
+const seg = (v) => v < 1 ? fmt.int(v * 1000) + " ms" : fmt.dec(v, 1) + " s";
+const maxL = lb.ponta_a_ponta.mediana;
+const barraL = (v, rot, cor) => `<div class="barra" data-tip="${rot}: ${seg(v)}"><div><i style="width:${Math.max(0.6, (v / maxL) * 100)}%;background:${cor}"></i></div><b>${seg(v)}</b></div>`;
+document.getElementById("g-lat").innerHTML = [["Verificar cliente", "verify_customer"], ["Consultar pedido", "get_order_summary"],
+  ["Classificar (LLM)", "classificar"], ["Embedding da busca", "OpenAI-embedding"], ["Redigir (LLM)", "redigir"]]
+  .map(([r, k]) => `<div class="metrica"><span>${r}</span>${barraL(la.passos[k].mediana, "120b", "var(--s1)")}${barraL(lb.passos[k].mediana, "20b", "var(--s2)")}</div>`).join("")
+  + `<div class="metrica"><span><b>Atendimento completo</b></span>${barraL(la.ponta_a_ponta.mediana, "120b", "var(--s1)")}${barraL(lb.ponta_a_ponta.mediana, "20b", "var(--s2)")}</div>`;
+document.getElementById("leitura-lat").textContent = `${fmt.pct(la.fracao_llm)} do tempo está nas chamadas ao LLM (120b). O 20b foi mais lento: gerou mais tokens de raciocínio na redação (${fmt.int(lb.tokens.redigir.raciocinio)} contra ${fmt.int(la.tokens.redigir.raciocinio)}, mediana).`;
+const ex = LF.exemplo, tot = ex.passos[0].duracao;
+const corT = { SPAN: "var(--tinta-3)", TOOL: "var(--s1)", GENERATION: "var(--chip-llm-tinta)", EMBEDDING: "var(--s2)" };
+document.getElementById("g-trace").innerHTML = ex.passos.filter((p) => !(["classificar", "redigir"].includes(p.nome) && p.tipo === "SPAN")).map((p) => {
+  const l = (p.inicio / tot) * 100, w = (p.duracao / tot) * 100;
+  const rot = l + w > 70 ? `right:calc(${100 - l - w}% + 6px);color:var(--superficie)` : `left:calc(${l + w}% + 6px)`;
+  return `<div class="ln"><span class="nm" style="padding-left:${Math.min(p.nivel, 1) * 14}px">${p.tipo === "GENERATION" ? "LLM · " : ""}${p.nome === "OpenAI-embedding" ? "embedding" : p.nome}</span>
+    <div class="tr" data-tip="${p.nome}: ${seg(p.duracao)}"><i style="left:${l}%;width:${w}%;background:${corT[p.tipo]}"></i><b style="${rot}">${seg(p.duracao)}</b></div></div>`;
+}).join("");
+document.getElementById("fonte-trace").textContent = `Trace real do E3 (gpt-oss-120b), cenário simulado ${ex.scenario_id}. Entrada da consulta no Langfuse: ${JSON.stringify(ex.consulta.entrada)}`;
+
+function rota() {
+  const v = location.hash === "#agente" ? "agente" : "operacao";
+  document.getElementById("v-operacao").hidden = v !== "operacao";
+  document.getElementById("v-agente").hidden = v !== "agente";
+  document.querySelectorAll("nav a").forEach((a) => a.toggleAttribute("aria-current", a.dataset.vista === v));
+  document.querySelectorAll("nav a").forEach((a) => a.dataset.vista === v && a.setAttribute("aria-current", "page"));
+  document.getElementById("titulo").textContent = v === "agente" ? "Agente de atendimento" : "Painel da operação";
+  if (v === "operacao") desenhar();
+}
+addEventListener("hashchange", rota);
+let t; addEventListener("resize", () => { clearTimeout(t); t = setTimeout(rota, 150); });
+G.dica();
+rota();
+</script>

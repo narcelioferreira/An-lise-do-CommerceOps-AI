@@ -34,7 +34,7 @@ máximo, piorar o texto da resposta, e o texto passa por validação antes de sa
 | Risco | Controle | Onde | Verificação |
 |---|---|---|---|
 | LLM02 | `order_id` só como HMAC em traces e na trilha de auditoria | `observability.hash_id`, `tools/orders.py` | `test_order_id_nunca_registrado_cru`, `test_acoes_ficam_registradas_sem_id_cru` |
-| LLM02 | Mascaramento de IDs, e-mail, CPF, CEP, telefone e cartão em todo dado enviado ao Langfuse, inclusive objetos Pydantic e dataclasses capturados por `@observe` (falha encontrada num trace real em 27/10/2026) | `observability.mask_pii` | `tests/test_observability.py`, conferência de trace real no Langfuse |
+| LLM02 | Mascaramento de IDs, e-mail, CPF, CEP, telefone e cartão em todo dado enviado ao Langfuse, inclusive objetos Pydantic e dataclasses capturados por `@observe` (falha encontrada num trace real em 27/10/2026). A máscara não apaga IDs de política (`POL-DEV-001-S03@1.1` virava `<email>`) nem carimbos de data e hora (viravam `<cartao>`) | `observability.mask_pii` | `tests/test_observability.py`, conferência de trace real no Langfuse |
 | LLM02, ASI03 | Identidade por pedido + CEP; acesso só ao próprio `customer_unique_id`; resposta única para falhas | `tools/orders.py` | `test_verificacao_falha_com_mensagem_unica`, `test_cliente_nao_acessa_pedido_de_outro` |
 | ASI03 | Usuário de banco com privilégio mínimo (`olist` e `kb` só leitura, `sim` sem `DELETE`) | `db/init/02_app_role.sh` | `test_usuario_da_aplicacao_tem_privilegio_minimo` |
 
@@ -70,7 +70,7 @@ máximo, piorar o texto da resposta, e o texto passa por validação antes de sa
 | Risco | Controle | Onde | Verificação |
 |---|---|---|---|
 | Prompt injection, ASI01 | LLM sem ferramentas; mensagem do cliente vai como dado JSON; regras explícitas no prompt | `agent.py` | `test_injecao_de_prompt_nao_passa_pelo_validador` |
-| Misinformation, Improper output handling | Validador: política citada e do contexto, datas e valores só dos fatos, frases proibidas, sem IDs, encaminhamento informado; reprovou → resposta-modelo | `agent.validate`, `agent.fallback` | `test_validador_recusa`, `test_resposta_modelo_sempre_passa_no_validador` |
+| Misinformation, Improper output handling | Validador: política citada e do contexto, datas e valores só dos fatos, frases proibidas (inclusive negativas como "a devolução não será aceita", achada num trace de desenvolvimento), sem IDs, encaminhamento informado; reprovou → resposta-modelo | `agent.validate`, `agent.fallback` | `test_validador_recusa`, `test_validador_aceita_dizer_que_nada_e_negado_automaticamente`, `test_resposta_modelo_sempre_passa_no_validador` |
 | Excessive agency, ASI02 | Saída do classificador validada contra a taxonomia; inválida ou com confiança < 0,5 vira `outro_ou_ambiguo`, que não age | `agent.classify` | `test_classificacao_invalida_vira_ambigua_e_nao_age` |
 | ASI01, ASI09 | Sinais de risco por regra somados aos do LLM: o LLM não consegue evitar um encaminhamento | `agent.answer`, `domain/decisions.py` | `test_sinal_detectado_em_codigo_encaminha_mesmo_que_o_llm_omita` |
 | LLM02, Hidden context exposure | Ao LLM só vão fatos mínimos (sem IDs de pedido, cliente ou vendedor); o prompt não tem segredo | `agent._facts` | `test_dados_enviados_ao_llm_sao_minimos` |

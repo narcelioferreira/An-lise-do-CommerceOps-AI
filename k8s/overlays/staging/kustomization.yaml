@@ -15,3 +15,4 @@ configMapGenerator:
     behavior: merge
     literals:
       - ENVIRONMENT=staging
+      - LLM_MODEL=openai/gpt-oss-120b  # D12: staging é o teste final, com o modelo oficial

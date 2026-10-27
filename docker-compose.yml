@@ -3,8 +3,8 @@
 #   docker compose up -d                         # banco + API
 #   docker compose --profile local-llm up -d     # + Ollama (LLM e embeddings locais)
 #
-# Langfuse: por padrão usa o Langfuse Cloud (chaves no .env). Self-hosted é etapa opcional
-# de infraestrutura (Postgres + ClickHouse + Redis + MinIO), prevista para a etapa de Kubernetes.
+# Langfuse: o projeto usa o Langfuse Cloud (chaves no .env), inclusive na etapa de Kubernetes.
+# Self-hosted (Postgres + ClickHouse + Redis + MinIO) continua opcional e fora deste compose.
 
 services:
   db:

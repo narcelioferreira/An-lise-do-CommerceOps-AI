@@ -238,11 +238,11 @@ Todas as variáveis estão em [`.env.example`](.env.example).
 | `LLM_MAX_RETRIES` | não | Novas tentativas em erro do provedor (padrão 2). Para a avaliação no plano gratuito do Groq, use 8 |
 | `EMBEDDING_BASE_URL`, `EMBEDDING_MODEL` | não | Embeddings para a busca vetorial. Padrão: Ollama com `bge-m3` (1024 dimensões) |
 | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL` | não | Tracing e experimentos; sem chaves, o tracing fica desligado |
+| `ENVIRONMENT` | não | `production` desliga `/docs` e `/openapi.json` |
+| `RATE_LIMIT_PER_MINUTE` | não | Requisições por minuto por IP nas rotas `/v1` (padrão 30) |
 
 Espaços nas pontas dos valores são removidos ao ler a configuração: um espaço colado na chave
 invalidaria o cabeçalho HTTP.
-| `ENVIRONMENT` | não | `production` desliga `/docs` e `/openapi.json` |
-| `RATE_LIMIT_PER_MINUTE` | não | Requisições por minuto por IP nas rotas `/v1` (padrão 30) |
 
 ## Avaliação
 
@@ -269,6 +269,14 @@ qualidade. O relatório guarda, para revisão, o texto do LLM recusado pelo vali
 nunca sai na resposta da API. Os resultados vão para
 `reports/eval/`; com `LANGFUSE_*`, cada execução também vira um experimento no Langfuse, com score por
 cenário.
+
+**Painel e imagens de divulgação.** `reports/dashboard/` guarda um painel (`painel.html`) e cartões para
+redes sociais (`cartoes.html`, fotografados em `imagens/`). Os números vêm de dois scripts, que só leem:
+
+```bash
+python scripts/dashboard_data.py --raw data/raw   # operação (CSVs) e resultados de reports/eval/
+python scripts/langfuse_data.py                   # latência por passo e trace de exemplo do E3 (API do Langfuse)
+```
 
 ## Testes e CI
 
@@ -421,6 +429,7 @@ Outros documentos: [auditoria dos dados](docs/02_auditoria_dados.md) e
 - Mudanças de schema exigem recriar o banco: ainda não há ferramenta de migração.
 - Manifests Kubernetes validados, mas nunca aplicados em um cluster.
 
-## Licença dos dados
+## Licença
 
+O código, as políticas fictícias e os cenários simulados estão sob a licença MIT ([`LICENSE`](LICENSE)).
 O dataset Olist é distribuído pelo Kaggle sob CC BY-NC-SA 4.0 e não é redistribuído aqui.

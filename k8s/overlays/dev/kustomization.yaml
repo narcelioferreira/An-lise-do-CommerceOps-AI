@@ -4,11 +4,6 @@ namespace: commerceops-dev
 resources:
   - namespace.yaml
   - ../../base
-configMapGenerator:
-  - name: commerceops-config
-    behavior: merge
-    literals:
-      - LLM_MODEL=openai/gpt-oss-20b  # desenvolvimento usa o modelo leve; staging, o oficial
 images:
   - name: commerceops-ai
     newTag: "0.1.0"
