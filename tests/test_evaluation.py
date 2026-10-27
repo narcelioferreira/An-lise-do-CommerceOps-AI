@@ -1,7 +1,7 @@
 import pytest
 
 from commerceops.agent import ChatResult
-from commerceops.evaluation import load_scenarios, retrieval_score, score, summarize
+from commerceops.evaluation import eval_model, load_scenarios, retrieval_score, score, summarize
 from tests.test_decisions import KB
 
 SCENARIOS = load_scenarios()
@@ -100,3 +100,18 @@ def test_resumo_conta_so_onde_a_metrica_se_aplica():
         "a": {"media": 0.5, "n": 2},
         "b": {"media": 0.0, "n": 1},
     }
+
+
+# ---------------------------------------------------------------- cuidado 3: modelo por tipo de rodada
+
+OFICIAL, DEV = "openai/gpt-oss-120b", "openai/gpt-oss-20b"
+
+
+def test_rodada_de_desenvolvimento_usa_o_modelo_leve():
+    assert eval_model(DEV, OFICIAL, oficial=False) == DEV
+
+
+def test_modelo_oficial_so_com_flag():
+    assert eval_model(DEV, OFICIAL, oficial=True) == OFICIAL
+    with pytest.raises(ValueError, match="reservado para rodadas oficiais"):
+        eval_model(OFICIAL, OFICIAL, oficial=False)

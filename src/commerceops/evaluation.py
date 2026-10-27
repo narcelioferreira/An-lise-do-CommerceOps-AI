@@ -39,6 +39,20 @@ class Scenario(BaseModel):
     must_not_say: list[str]
 
 
+def eval_model(llm_model: str | None, oficial_model: str, *, oficial: bool) -> str | None:
+    """Modelo de uma rodada: o oficial só com --oficial; o resto do tempo, o de desenvolvimento.
+
+    Protege a cota do plano gratuito: o modelo grande fica para rodadas oficiais e o teste final.
+    """
+    if oficial:
+        return oficial_model
+    if llm_model == oficial_model:
+        raise ValueError(
+            f"{oficial_model} é reservado para rodadas oficiais: use --oficial ou mude LLM_MODEL"
+        )
+    return llm_model
+
+
 def load_scenarios(path: Path = DEFAULT_SCENARIOS) -> list[Scenario]:
     scenarios = [Scenario.model_validate(s) for s in yaml.safe_load(path.read_text(encoding="utf-8"))]
     ids = [s.scenario_id for s in scenarios]

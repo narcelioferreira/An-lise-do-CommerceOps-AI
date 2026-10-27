@@ -1,9 +1,13 @@
 """Roda a avaliação sobre evals/scenarios.yaml e grava o resultado em reports/eval/.
 
 Uso (DATABASE_URL apontando para um banco com o dataset real carregado):
-    python scripts/run_eval.py                   # agente completo: exige LLM_*
+    python scripts/run_eval.py                   # agente completo com LLM_MODEL (desenvolvimento)
+    python scripts/run_eval.py --oficial         # rodada oficial, com LLM_MODEL_OFICIAL
     python scripts/run_eval.py --oracle-intent   # intenção do gabarito: mede decisão, ações e redação
     python scripts/run_eval.py --retrieval       # Recall@k e MRR@k da busca, por método
+
+Com LLM_CACHE_PATH, respostas já obtidas vêm do cache e não gastam tokens; para medir a variação
+entre execuções, rode com LLM_CACHE_PATH= (vazio).
 
 Com LANGFUSE_* configurado, cada execução vira um experimento no Langfuse, com scores por cenário.
 """
@@ -25,7 +29,14 @@ from psycopg_pool import ConnectionPool  # noqa: E402
 
 from commerceops.agent import Agent, ChatRequest, ChatResult, build_agent  # noqa: E402
 from commerceops.config import get_settings  # noqa: E402
-from commerceops.evaluation import Scenario, load_scenarios, retrieval_score, score, summarize  # noqa: E402
+from commerceops.evaluation import (  # noqa: E402
+    Scenario,
+    eval_model,
+    load_scenarios,
+    retrieval_score,
+    score,
+    summarize,
+)
 from commerceops.knowledge.retrieval import Method  # noqa: E402
 from commerceops.llm import ChatModel  # noqa: E402
 from commerceops.observability import init_langfuse  # noqa: E402
@@ -117,16 +128,25 @@ def main() -> int:
     mode = ap.add_mutually_exclusive_group()
     mode.add_argument("--oracle-intent", action="store_true")
     mode.add_argument("--retrieval", action="store_true")
+    ap.add_argument("--oficial", action="store_true", help="usa LLM_MODEL_OFICIAL (rodadas oficiais)")
     ap.add_argument("--out-dir", type=Path, default=ROOT / "reports" / "eval")
     args = ap.parse_args()
 
     settings = get_settings()
+    if not args.retrieval:
+        try:
+            model = eval_model(settings.llm_model, settings.llm_model_oficial, oficial=args.oficial)
+        except ValueError as e:
+            print(e, file=sys.stderr)
+            return 2
+        settings = settings.model_copy(update={"llm_model": model})
     # Antes de qualquer chamada: langfuse.openai instrumenta o SDK do OpenAI inteiro, inclusive embeddings
     langfuse = init_langfuse(settings)
     scenarios = load_scenarios()
     with ConnectionPool(settings.database_url.get_secret_value(), min_size=1, max_size=2) as pool:
         agent = build_agent(settings, pool)
         name = "retrieval" if args.retrieval else "oracle-intent" if args.oracle_intent else "agente"
+        name += "-oficial" if args.oficial else ""
         if agent.chat is None and name == "agente":
             print("LLM não configurado: use --oracle-intent ou defina LLM_*", file=sys.stderr)
             return 2
@@ -135,6 +155,8 @@ def main() -> int:
             "llm_model": settings.llm_model or "nenhum",
             "embedding_model": settings.embedding_model or "nenhum",
             "release": settings.release,
+            "oficial": args.oficial,
+            "cache": bool(settings.llm_cache_path),
         }
         model = metadata["embedding_model" if args.retrieval else "llm_model"].replace("/", "_")
         run_name = f"{name}-{model}-{datetime.now():%Y%m%d-%H%M%S}"
@@ -144,7 +166,9 @@ def main() -> int:
             if args.oracle_intent:
                 intents = {s.customer_message: s.expected_intent for s in scenarios}
                 agent = dataclasses.replace(agent, chat=oracle_chat(intents, agent.chat))
-            results = run_agent(langfuse, agent, scenarios, run_name, metadata)
+            results = run_agent(
+                langfuse, agent, scenarios, run_name, {k: str(v) for k, v in metadata.items()}
+            )
             report = {**metadata, "resumo": summarize([r["scores"] for r in results]), "cenarios": results}
 
     args.out_dir.mkdir(parents=True, exist_ok=True)

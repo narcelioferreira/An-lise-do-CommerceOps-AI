@@ -67,3 +67,25 @@ fundamentam a decisão vêm do código, então a escolha não altera nenhuma dec
 
 **Quando rever.** A amostra é pequena (21 cenários). Refazer E1 quando houver mais cenários ou
 mensagens reais; se a híbrida empatar ou passar, ela é mais robusta a termos exatos.
+
+## D12 — Economia de tokens: LLM falso nos testes, cache e modelo leve no desenvolvimento
+
+**Decisão.**
+1. **Testes nunca chamam o LLM real.** Usam LLM falso; o `tests/conftest.py` descarta `LLM_*`,
+   `EMBEDDING_*` e `LANGFUSE_*` do ambiente e bloqueia qualquer conexão fora do `localhost`, então um
+   teste que tente alcançar o Groq falha em vez de gastar tokens.
+2. **Respostas reais ficam em cache** (`LLM_CACHE_PATH`, SQLite local): a chave é o hash de modelo,
+   mensagens e parâmetros, e a mesma chamada nunca vai ao provedor duas vezes. Erros não entram.
+3. **Desenvolvimento usa `openai/gpt-oss-20b`** (`LLM_MODEL`); o `openai/gpt-oss-120b`
+   (`LLM_MODEL_OFICIAL`) fica para as rodadas oficiais de avaliação e o teste final. O
+   `run_eval.py` recusa o modelo oficial sem `--oficial`.
+
+**Por quê.** O plano gratuito do Groq limita tokens por minuto e requisições por dia (E3), e a cota é
+compartilhada entre desenvolvimento e avaliação.
+
+**Consequências.**
+- Repetir uma rodada com cache devolve o mesmo resultado sem custo. Para medir a variação entre
+  execuções, rode com `LLM_CACHE_PATH=` (vazio): é a única situação em que a mesma chamada se repete.
+- O cache guarda o texto das respostas (dados simulados) em disco local, ignorado pelo git. Não é para
+  produção: lá `LLM_CACHE_PATH` fica vazio, e o sistema de arquivos do contêiner é somente leitura.
+- O overlay `dev` do Kubernetes usa o 20b; o `staging`, o oficial.

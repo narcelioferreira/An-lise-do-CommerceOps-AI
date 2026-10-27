@@ -91,3 +91,11 @@ máximo, piorar o texto da resposta, e o texto passa por validação antes de sa
 | Unbounded consumption | `requests`/`limits` de CPU e memória; `/tmp` com teto; limite global de requisições no gateway | `k8s/base/` | job `k8s` |
 | LLM02 | Segredos só em Secret criado fora do git; ConfigMap sem segredo | `k8s/base/kustomization.yaml` | gitleaks |
 | ASI08 | Probes só em `/health/live` e `/health/ready`; LLM e Langfuse fora delas | `k8s/base/deployment.yaml` | revisão de código |
+
+## Consumo do LLM (D12)
+
+| Risco | Controle | Onde | Verificação |
+|---|---|---|---|
+| Unbounded consumption | Testes sem LLM real: credenciais descartadas e conexões fora do `localhost` bloqueadas | `tests/conftest.py` | `test_rede_externa_bloqueada_nos_testes`, `test_chamada_ao_groq_falha_sem_gastar_tokens` |
+| Unbounded consumption | Cache persistente: a mesma chamada nunca vai ao provedor duas vezes; erros não entram | `llm.ResponseCache`, `llm.cached` | `tests/test_llm.py` |
+| Unbounded consumption | Modelo grande só em rodada oficial (`--oficial`); desenvolvimento com o leve | `evaluation.eval_model`, `k8s/overlays/dev` | `test_modelo_oficial_so_com_flag` |

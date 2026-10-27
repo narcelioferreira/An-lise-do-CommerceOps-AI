@@ -29,7 +29,11 @@ class Settings(BaseSettings):
     # alternativa local. O modelo vem do ambiente porque o catálogo gratuito muda com frequência.
     llm_base_url: str | None = None
     llm_api_key: SecretStr | None = None
+    # Desenvolvimento usa o modelo leve; o oficial só entra em rodadas oficiais (run_eval.py --oficial)
     llm_model: str | None = None
+    llm_model_oficial: str = "openai/gpt-oss-120b"
+    # Cache local das respostas reais (SQLite). Vazio = sem cache, como em produção.
+    llm_cache_path: str | None = None
     # Novas tentativas com espera (respeita Retry-After). A avaliação sobe o valor para caber no limite
     # de tokens por minuto do plano gratuito sem transformar 429 em resposta degradada.
     llm_max_retries: int = 2

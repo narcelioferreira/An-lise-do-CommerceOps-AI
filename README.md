@@ -231,7 +231,10 @@ Todas as variáveis estão em [`.env.example`](.env.example).
 | `ORDER_ID_HMAC_KEY` | sim | Chave do HMAC que pseudonimiza `order_id` em traces e na trilha de auditoria |
 | `ADMIN_DATABASE_URL` | scripts | Superusuário, usado só pela carga e indexação |
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `APP_DB_USER`, `APP_DB_PASSWORD` | compose | Criação do banco e do usuário da aplicação |
-| `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL` | não | Provedor com API compatível com OpenAI. Padrão: Groq com `openai/gpt-oss-120b` (D9) |
+| `LLM_BASE_URL`, `LLM_API_KEY` | não | Provedor com API compatível com OpenAI. Padrão: Groq (D9) |
+| `LLM_MODEL` | não | Modelo do dia a dia: `openai/gpt-oss-20b`, mais leve (D12) |
+| `LLM_MODEL_OFICIAL` | não | Modelo das rodadas oficiais e do teste final: `openai/gpt-oss-120b` (D12) |
+| `LLM_CACHE_PATH` | não | Cache local das respostas reais (SQLite): a mesma chamada nunca vai ao provedor duas vezes. Vazio em produção (D12) |
 | `LLM_MAX_RETRIES` | não | Novas tentativas em erro do provedor (padrão 2). Para a avaliação no plano gratuito do Groq, use 8 |
 | `EMBEDDING_BASE_URL`, `EMBEDDING_MODEL` | não | Embeddings para a busca vetorial. Padrão: Ollama com `bge-m3` (1024 dimensões) |
 | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL` | não | Tracing e experimentos; sem chaves, o tracing fica desligado |
@@ -251,8 +254,13 @@ pagamento com voucher + cartão e injeção de prompt). Exigem o dataset carrega
 ```bash
 python scripts/run_eval.py --retrieval       # E1: Recall@5 e MRR@5 por método de busca
 python scripts/run_eval.py --oracle-intent   # E2: intenção do gabarito; mede decisão, ações e redação
-LLM_MAX_RETRIES=8 python scripts/run_eval.py # E3: agente completo (exige LLM_*)
+LLM_MAX_RETRIES=8 python scripts/run_eval.py # E3 de desenvolvimento, com LLM_MODEL (gpt-oss-20b)
+LLM_MAX_RETRIES=8 python scripts/run_eval.py --oficial   # rodada oficial, com LLM_MODEL_OFICIAL
 ```
+
+**Consumo de tokens (D12).** Com `LLM_CACHE_PATH`, cada chamada real ao LLM é feita uma única vez:
+repetir uma rodada reaproveita as respostas sem custo. O `gpt-oss-120b` só roda com `--oficial`; sem a
+flag, o script recusa. Para medir a variação entre execuções, rode com `LLM_CACHE_PATH=` (vazio).
 
 Métricas por cenário: intenção correta, recall de políticas, encaminhamento correto, ações corretas,
 ausência de frases proibidas e resposta validada. Todas são determinísticas. Se o LLM falhar (limite de
@@ -265,14 +273,16 @@ cenário.
 ## Testes e CI
 
 ```bash
-pytest                                      # unitários: sem banco e sem CSVs
+pytest                                      # unitários: sem banco, sem CSVs e sem LLM real
 pytest -m integration                       # exige ADMIN_DATABASE_URL e DATABASE_URL (banco de db/init/)
 ruff check . && ruff format --check .       # lint, incluindo regras de segurança (bandit)
 pip-audit --skip-editable                   # vulnerabilidades conhecidas nas dependências
 python scripts/render_policies.py --check   # catálogo de políticas sincronizado com os YAML
 ```
 
-Em 27/10/2026: 293 testes unitários e 24 de integração. Os testes de integração carregam um
+Em 27/10/2026: 305 testes unitários e 24 de integração. **Nenhum teste chama o LLM real**: os testes
+usam LLM falso, as credenciais do ambiente são descartadas e qualquer conexão fora do `localhost` é
+bloqueada, então um teste que tentasse alcançar o Groq falharia em vez de gastar tokens (D12). Os testes de integração carregam um
 mini-dataset sintético e verificam, no próprio Postgres, o privilégio mínimo, a checagem de posse, a
 idempotência das escritas e o agente de ponta a ponta.
 
@@ -340,7 +350,8 @@ Langfuse no marketplace.
 ## Kubernetes
 
 Manifests Kustomize em [`k8s/`](k8s/README.md): base com Deployment, Service, NetworkPolicy, HTTPRoute
-(Gateway API) e ConfigMap, e overlays `dev` (1 réplica) e `staging` (2 réplicas). Os namespaces usam
+(Gateway API) e ConfigMap, e overlays `dev` (1 réplica, `gpt-oss-20b`) e `staging` (2 réplicas,
+`gpt-oss-120b`). Os namespaces usam
 Pod Security Admission `restricted`. Segredos nunca vão para o git: o Secret é criado à parte, como
 descrito em `k8s/README.md`. Os manifests são validados no CI, mas ainda não foram aplicados em um
 cluster.
@@ -385,6 +396,7 @@ tests/                  unitários e de integração (tests/integration/)
 | D9 | LLM via API compatível com OpenAI; padrão Groq com `gpt-oss-120b` (confirmado no E3) | [03_arquitetura.md](docs/03_arquitetura.md) |
 | D10 | Fluxo em Python sem LangGraph; LLM sem ferramentas | [03_arquitetura.md](docs/03_arquitetura.md) |
 | D11 | Contexto do agente pela busca vetorial (medido no E1) | [03_arquitetura.md](docs/03_arquitetura.md) |
+| D12 | Economia de tokens: LLM falso nos testes, cache das respostas, 20b no desenvolvimento e 120b só no oficial | [03_arquitetura.md](docs/03_arquitetura.md) |
 
 Outros documentos: [auditoria dos dados](docs/02_auditoria_dados.md) e
 [catálogo de políticas](docs/catalogo_politicas.md) (gerado a partir dos YAML).
