@@ -84,14 +84,15 @@ Os artigos do CDC ficam em arquivo próprio, com `source_type: legal_public_sour
 chunk de uma regra fictícia. As políticas citam o artigo pelo ID (`LEG-CDC-049`) em vez de
 parafraseá-lo.
 
-> ⚠️ **Pendência:** os três artigos foram transcritos sem acesso ao site do Planalto e estão marcados
-> como `verification_status: pendente`. Antes de usar o RAG em avaliação, conferir cada texto com a
-> [fonte oficial](https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm), marcar como
-> `verificado` e preencher `verified_at`. Com `strict_legal=True`, o carregador recusa texto não verificado.
+Os três artigos foram conferidos com a [fonte oficial](https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm)
+em 2026-10-26 e estão como `verification_status: verificado`. O texto é literal, inclusive "com a
+indicações" no art. 18, que está assim na lei. Com `strict_legal=True`, o carregador recusa texto
+não verificado.
 
 ## 4. Formato dos cenários de avaliação
 
-Todo cenário é **simulado** e deve dizer isso no próprio registro. Os campos mínimos são:
+Todo cenário é **simulado** e deve dizer isso no próprio registro. Os cenários ficam em
+`evals/scenarios.yaml`, validados por `commerceops.evaluation.Scenario`. Os campos são:
 
 ```yaml
 scenario_id: ENT-002-entregue-mas-nao-recebido-01
@@ -99,13 +100,13 @@ simulated: true
 inspired_by_review_row_id: 18234   # opcional; nunca o texto original com identificadores
 reference_date: 2018-03-14         # D4
 order_id: <pedido real do dataset>
+zip_prefix: "01310"                # verificação de identidade (POL-SEG-001)
 customer_message: "Consta como entregue mas não recebi nada."
 expected_intent: pedido_nao_recebido
 expected_sentiment: negativo
 expected_policy_ids: [POL-ENT-002]
 expected_chunk_ids: [POL-ENT-002-S02@1.0]
-requires_sql: true
-expected_action: abrir_ocorrencia_investigacao_entrega
+expected_actions: ["ocorrencia:investigacao_entrega"]   # escritas em sim; [] = nenhuma
 must_escalate: true
 must_not_say: ["foi entregue", "reembolso aprovado"]
 ```
@@ -120,7 +121,7 @@ Casos-limite obrigatórios, além dos oito do pacote v1.0:
 
 ## 5. Pendências
 
-- [ ] Conferir os textos do CDC com a fonte oficial.
+- [x] Conferir os textos do CDC com a fonte oficial (2026-10-26).
 - [ ] Rotular a amostra estratificada e revisar a taxonomia (pode haver fusão ou divisão de classes).
 - [ ] Medir a concordância entre anotadores; pode ser intra-anotador, se o trabalho for individual.
-- [ ] Escrever os cenários de avaliação no formato da seção 4.
+- [x] Escrever os cenários de avaliação no formato da seção 4 (`evals/scenarios.yaml`, 24 cenários).

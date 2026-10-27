@@ -1,0 +1,8 @@
+# Pod Security Admission em "restricted": o cluster recusa pods que fujam dos controles do deployment
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: commerceops-staging
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest

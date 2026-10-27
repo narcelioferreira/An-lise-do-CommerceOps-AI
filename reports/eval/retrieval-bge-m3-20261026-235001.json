@@ -1,0 +1,39 @@
+{
+  "modo": "retrieval",
+  "llm_model": "nenhum",
+  "embedding_model": "bge-m3",
+  "release": "0.1.0",
+  "k": 5,
+  "por_metodo": {
+    "lexical": {
+      "mrr@5": {
+        "media": 0.4437,
+        "n": 21
+      },
+      "recall@5": {
+        "media": 0.6667,
+        "n": 21
+      }
+    },
+    "vector": {
+      "mrr@5": {
+        "media": 0.6127,
+        "n": 21
+      },
+      "recall@5": {
+        "media": 0.8095,
+        "n": 21
+      }
+    },
+    "hybrid": {
+      "mrr@5": {
+        "media": 0.5714,
+        "n": 21
+      },
+      "recall@5": {
+        "media": 0.7619,
+        "n": 21
+      }
+    }
+  }
+}

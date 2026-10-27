@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: commerceops-staging
+resources:
+  - namespace.yaml
+  - ../../base
+replicas:
+  - name: commerceops-api
+    count: 2
+images:
+  - name: commerceops-ai
+    newTag: "0.1.0"
+configMapGenerator:
+  - name: commerceops-config
+    behavior: merge
+    literals:
+      - ENVIRONMENT=staging
