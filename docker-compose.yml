@@ -31,6 +31,9 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://${APP_DB_USER}:${APP_DB_PASSWORD}@db:5432/commerceops
+      # Dentro do contêiner, "localhost" é a própria API: o Ollama é alcançado pelo nome do serviço.
+      # Sem o perfil local-llm, a busca vetorial falha e o agente cai para a lexical (OWASP ASI08).
+      EMBEDDING_BASE_URL: http://ollama:11434/v1
     depends_on:
       db:
         condition: service_healthy
