@@ -31,6 +31,14 @@ class Settings(BaseSettings):
     llm_api_key: SecretStr | None = None
     llm_model: str | None = None
 
+    # Embeddings: o Groq não oferece; padrão é o Ollama local com bge-m3 (1024 dimensões, kb.chunks).
+    embedding_base_url: str | None = None
+    embedding_api_key: SecretStr | None = None
+    embedding_model: str | None = None
+
+    # Requisições por minuto por IP nas rotas /v1 (OWASP Unbounded consumption)
+    rate_limit_per_minute: int = 30
+
     @property
     def langfuse_enabled(self) -> bool:
         return bool(self.langfuse_public_key and self.langfuse_secret_key)
