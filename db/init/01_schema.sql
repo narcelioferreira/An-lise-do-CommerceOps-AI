@@ -113,6 +113,9 @@ CREATE TABLE sim.tickets (
     created_at        timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX ON sim.tickets (customer_unique_id);
+-- Idempotência: repetir a mensagem não abre outra ocorrência do mesmo tipo enquanto houver uma aberta
+CREATE UNIQUE INDEX ON sim.tickets (order_id, ticket_type)
+    WHERE ticket_status NOT IN ('resolvido', 'encerrado');
 
 CREATE TABLE sim.cancellation_requests (
     request_id     bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -121,6 +124,7 @@ CREATE TABLE sim.cancellation_requests (
         CHECK (status IN ('solicitado', 'concluido', 'recusado')),
     requested_at   timestamp NOT NULL
 );
+CREATE UNIQUE INDEX ON sim.cancellation_requests (order_id) WHERE status = 'solicitado';
 
 CREATE TABLE sim.return_requests (
     request_id     bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -132,6 +136,7 @@ CREATE TABLE sim.return_requests (
         CHECK (status IN ('solicitado', 'em_analise', 'aprovado', 'recusado', 'concluido')),
     requested_at   timestamp NOT NULL
 );
+CREATE UNIQUE INDEX ON sim.return_requests (order_id) WHERE status IN ('solicitado', 'em_analise');
 
 CREATE TABLE sim.refund_requests (
     request_id     bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

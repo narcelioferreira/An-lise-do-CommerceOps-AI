@@ -98,6 +98,9 @@ class PolicyVersion(_Strict):
     version: str
     effective_from: date
     effective_until: date | None = None
+    # Números que as regras em código usam (ex.: return_window_days). O texto da seção diz o mesmo
+    # número para o leitor; um teste garante que os dois não divergem.
+    params: dict[str, int] = Field(default_factory=dict)
     sections: list[Section]
 
     @model_validator(mode="after")

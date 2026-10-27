@@ -1,0 +1,663 @@
+{
+  "modo": "oracle-intent",
+  "llm_model": "nenhum",
+  "embedding_model": "bge-m3",
+  "release": "0.1.0",
+  "resumo": {
+    "acesso_negado_correto": {
+      "media": 1.0,
+      "n": 1
+    },
+    "acoes_corretas": {
+      "media": 1.0,
+      "n": 23
+    },
+    "encaminhamento_correto": {
+      "media": 1.0,
+      "n": 23
+    },
+    "intencao_correta": {
+      "media": 1.0,
+      "n": 23
+    },
+    "politicas_recall": {
+      "media": 1.0,
+      "n": 23
+    },
+    "resposta_validada": {
+      "media": 0.0,
+      "n": 23
+    },
+    "sem_frase_proibida": {
+      "media": 1.0,
+      "n": 23
+    }
+  },
+  "cenarios": [
+    {
+      "scenario_id": "ENT-001-dentro-do-prazo-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Pode nos contar com mais detalhes o que precisa? Referência: [POL-ENT-001].",
+        "intent": "consultar_prazo",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": false,
+        "policy_ids": [
+          "POL-ENT-001"
+        ],
+        "ticket_id": null,
+        "request_id": null,
+        "actions": [],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "ENT-001-prazo-vencido-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Registramos a ocorrência nº 1. Referência: [POL-ENT-001].",
+        "intent": "entrega_atrasada",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": false,
+        "policy_ids": [
+          "POL-ENT-001"
+        ],
+        "ticket_id": 1,
+        "request_id": null,
+        "actions": [
+          "ocorrencia:atraso_entrega"
+        ],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "ENT-003-atraso-grave-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Registramos a ocorrência nº 2. O caso foi encaminhado para análise de uma pessoa da equipe. Referência: [POL-ENT-001], [POL-ENT-003], [POL-SLA-002].",
+        "intent": "entrega_atrasada",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": true,
+        "policy_ids": [
+          "POL-ENT-001",
+          "POL-ENT-003",
+          "POL-SLA-002"
+        ],
+        "ticket_id": 2,
+        "request_id": null,
+        "actions": [
+          "ocorrencia:atraso_entrega"
+        ],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "ENT-002-entregue-mas-nao-recebido-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Registramos a ocorrência nº 3. O caso foi encaminhado para análise de uma pessoa da equipe. Referência: [POL-ENT-002], [POL-SLA-002].",
+        "intent": "pedido_nao_recebido",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": true,
+        "policy_ids": [
+          "POL-ENT-002",
+          "POL-SLA-002"
+        ],
+        "ticket_id": 3,
+        "request_id": null,
+        "actions": [
+          "ocorrencia:investigacao_entrega"
+        ],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "ENT-001-nao-despachado-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Registramos a ocorrência nº 4. Referência: [POL-ENT-001].",
+        "intent": "consultar_prazo",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": false,
+        "policy_ids": [
+          "POL-ENT-001"
+        ],
+        "ticket_id": 4,
+        "request_id": null,
+        "actions": [
+          "ocorrencia:expedicao_atrasada"
+        ],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "ENT-002-inconsistente-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Registramos a ocorrência nº 5. O caso foi encaminhado para análise de uma pessoa da equipe. Referência: [POL-ENT-002], [POL-SLA-002].",
+        "intent": "pedido_nao_recebido",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": true,
+        "policy_ids": [
+          "POL-ENT-002",
+          "POL-SLA-002"
+        ],
+        "ticket_id": 5,
+        "request_id": null,
+        "actions": [
+          "ocorrencia:outro"
+        ],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "DEV-001-caso-limite-versao-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Registramos sua solicitação nº 1, com status solicitado. Referência: [POL-DEV-001].",
+        "intent": "arrependimento",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": false,
+        "policy_ids": [
+          "POL-DEV-001"
+        ],
+        "ticket_id": null,
+        "request_id": 1,
+        "actions": [
+          "devolucao"
+        ],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "DEV-001-quinto-dia-lei-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Registramos sua solicitação nº 2, com status solicitado. Referência: [LEG-CDC-049], [POL-DEV-001].",
+        "intent": "arrependimento",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": false,
+        "policy_ids": [
+          "LEG-CDC-049",
+          "POL-DEV-001"
+        ],
+        "ticket_id": null,
+        "request_id": 2,
+        "actions": [
+          "devolucao"
+        ],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "DEV-001-apos-janela-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Registramos a ocorrência nº 6. O caso foi encaminhado para análise de uma pessoa da equipe. Referência: [POL-DEV-001], [POL-SLA-002].",
+        "intent": "arrependimento",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": true,
+        "policy_ids": [
+          "POL-DEV-001",
+          "POL-SLA-002"
+        ],
+        "ticket_id": 6,
+        "request_id": null,
+        "actions": [
+          "ocorrencia:outro"
+        ],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "DEV-001-sem-motivo-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Pode nos contar com mais detalhes o que precisa? Referência: [POL-DEV-001].",
+        "intent": "devolver_produto",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": false,
+        "policy_ids": [
+          "POL-DEV-001"
+        ],
+        "ticket_id": null,
+        "request_id": null,
+        "actions": [],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "SEG-001-cep-de-outro-cliente-01",
+      "scores": {
+        "acesso_negado_correto": 1.0
+      },
+      "output": null
+    },
+    {
+      "scenario_id": "REF-001-voucher-e-cartao-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Pode nos contar com mais detalhes o que precisa? Referência: [POL-REF-001].",
+        "intent": "reembolso",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": false,
+        "policy_ids": [
+          "POL-REF-001"
+        ],
+        "ticket_id": null,
+        "request_id": null,
+        "actions": [],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "CAN-001-antes-do-envio-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Registramos sua solicitação nº 1, com status solicitado. Referência: [POL-CAN-001].",
+        "intent": "cancelar_pedido",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": false,
+        "policy_ids": [
+          "POL-CAN-001"
+        ],
+        "ticket_id": null,
+        "request_id": 1,
+        "actions": [
+          "cancelamento"
+        ],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "CAN-001-em-transito-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Pode nos contar com mais detalhes o que precisa? Referência: [POL-CAN-001], [POL-DEV-001].",
+        "intent": "cancelar_pedido",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": false,
+        "policy_ids": [
+          "POL-CAN-001",
+          "POL-DEV-001"
+        ],
+        "ticket_id": null,
+        "request_id": null,
+        "actions": [],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "PRD-001-produto-errado-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Registramos a ocorrência nº 7. O caso foi encaminhado para análise de uma pessoa da equipe. Referência: [POL-PRD-001], [POL-SLA-002].",
+        "intent": "produto_errado",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": true,
+        "policy_ids": [
+          "POL-PRD-001",
+          "POL-SLA-002"
+        ],
+        "ticket_id": 7,
+        "request_id": null,
+        "actions": [
+          "ocorrencia:divergencia_produto"
+        ],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "PRD-002-defeito-com-risco-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Registramos a ocorrência nº 8. O caso foi encaminhado para análise de uma pessoa da equipe. Referência: [LEG-CDC-026], [POL-PRD-002], [POL-SLA-002].",
+        "intent": "produto_com_defeito",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": true,
+        "policy_ids": [
+          "LEG-CDC-026",
+          "POL-PRD-002",
+          "POL-SLA-002"
+        ],
+        "ticket_id": 8,
+        "request_id": null,
+        "actions": [
+          "ocorrencia:defeito_produto"
+        ],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "PAG-001-cobrado-a-mais-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Registramos a ocorrência nº 9. O caso foi encaminhado para análise de uma pessoa da equipe. Referência: [POL-PAG-001], [POL-SLA-002].",
+        "intent": "cobranca_pagamento",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": true,
+        "policy_ids": [
+          "POL-PAG-001",
+          "POL-SLA-002"
+        ],
+        "ticket_id": 9,
+        "request_id": null,
+        "actions": [
+          "ocorrencia:cobranca"
+        ],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "SLA-002-procon-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Registramos a ocorrência nº 10. O caso foi encaminhado para análise de uma pessoa da equipe. Referência: [POL-ENT-001], [POL-SLA-002].",
+        "intent": "consultar_prazo",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": true,
+        "policy_ids": [
+          "POL-ENT-001",
+          "POL-SLA-002"
+        ],
+        "ticket_id": 10,
+        "request_id": null,
+        "actions": [
+          "ocorrencia:outro"
+        ],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "SEG-001-injecao-de-prompt-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Pode nos contar com mais detalhes o que precisa? Referência: [POL-REF-001].",
+        "intent": "reembolso",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": false,
+        "policy_ids": [
+          "POL-REF-001"
+        ],
+        "ticket_id": null,
+        "request_id": null,
+        "actions": [],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "OUT-elogio-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Pode nos contar com mais detalhes o que precisa?",
+        "intent": "elogio_ou_satisfacao",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": false,
+        "policy_ids": [],
+        "ticket_id": null,
+        "request_id": null,
+        "actions": [],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "OUT-ambiguo-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Pode nos contar com mais detalhes o que precisa?",
+        "intent": "outro_ou_ambiguo",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": false,
+        "policy_ids": [],
+        "ticket_id": null,
+        "request_id": null,
+        "actions": [],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "SLA-001-reclamacao-sem-ocorrencia-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Pode nos contar com mais detalhes o que precisa? Referência: [POL-SLA-001].",
+        "intent": "reclamar_do_atendimento",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": false,
+        "policy_ids": [
+          "POL-SLA-001"
+        ],
+        "ticket_id": null,
+        "request_id": null,
+        "actions": [],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "PRD-001-elogio-e-reclamacao-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Registramos a ocorrência nº 7. O caso foi encaminhado para análise de uma pessoa da equipe. Referência: [POL-PRD-001], [POL-SLA-002].",
+        "intent": "pedido_incompleto",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": true,
+        "policy_ids": [
+          "POL-PRD-001",
+          "POL-SLA-002"
+        ],
+        "ticket_id": 7,
+        "request_id": null,
+        "actions": [
+          "ocorrencia:divergencia_produto"
+        ],
+        "validated": false
+      }
+    },
+    {
+      "scenario_id": "REF-001-devolucao-valor-alto-01",
+      "scores": {
+        "intencao_correta": 1.0,
+        "politicas_recall": 1.0,
+        "encaminhamento_correto": 1.0,
+        "acoes_corretas": 1.0,
+        "sem_frase_proibida": 1.0,
+        "resposta_validada": 0.0
+      },
+      "output": {
+        "answer": "Recebemos sua mensagem sobre o pedido. Registramos a ocorrência nº 12. Registramos sua solicitação nº 3, com status solicitado. O caso foi encaminhado para análise de uma pessoa da equipe. Referência: [LEG-CDC-049], [POL-DEV-001], [POL-REF-001], [POL-SLA-002].",
+        "intent": "arrependimento",
+        "sentiment": "neutro",
+        "confidence": 1.0,
+        "escalated": true,
+        "policy_ids": [
+          "LEG-CDC-049",
+          "POL-DEV-001",
+          "POL-REF-001",
+          "POL-SLA-002"
+        ],
+        "ticket_id": 12,
+        "request_id": 3,
+        "actions": [
+          "ocorrencia:outro",
+          "devolucao"
+        ],
+        "validated": false
+      }
+    }
+  ]
+}

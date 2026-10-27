@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 import psycopg
+from psycopg import sql
 
 from commerceops.data.audit import FILES
 
@@ -64,12 +65,16 @@ def _rows(df: pd.DataFrame):
 
 def load(conn: psycopg.Connection, frames: dict[str, pd.DataFrame]) -> None:
     with conn.transaction():
-        conn.execute("TRUNCATE " + ", ".join(f"olist.{t}" for t in TABLES) + " CASCADE")
-        for table in TABLES:
+        tables = [sql.Identifier("olist", t) for t in TABLES]
+        conn.execute(sql.SQL("TRUNCATE {} CASCADE").format(sql.SQL(", ").join(tables)))
+        for table, ident in zip(TABLES, tables, strict=True):
             df = frames[table]
-            cols = ", ".join(df.columns)
+            # Nomes de coluna vêm do cabeçalho do CSV (dado externo): sempre como identificador citado
+            copy_sql = sql.SQL("COPY {} ({}) FROM STDIN").format(
+                ident, sql.SQL(", ").join(map(sql.Identifier, df.columns))
+            )
             t0 = time.perf_counter()
-            with conn.cursor().copy(f"COPY olist.{table} ({cols}) FROM STDIN") as copy:
+            with conn.cursor().copy(copy_sql) as copy:
                 for row in _rows(df):
                     copy.write_row(row)
             print(f"olist.{table:<22} {len(df):>9,} linhas  {time.perf_counter() - t0:5.1f}s")

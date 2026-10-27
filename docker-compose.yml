@@ -8,7 +8,7 @@
 
 services:
   db:
-    image: pgvector/pgvector:pg16
+    image: pgvector/pgvector:pg16@sha256:7b822b0aac60967beb1ea5e576b8602c94c300a157d187f385ae3e0da199b90a
     environment:
       POSTGRES_DB: commerceops
       POSTGRES_USER: ${POSTGRES_USER:?defina no .env}
@@ -31,14 +31,22 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://${APP_DB_USER}:${APP_DB_PASSWORD}@db:5432/commerceops
+      # Dentro do contêiner, "localhost" é a própria API: o Ollama é alcançado pelo nome do serviço.
+      # Sem o perfil local-llm, a busca vetorial falha e o agente cai para a lexical (OWASP ASI08).
+      EMBEDDING_BASE_URL: http://ollama:11434/v1
     depends_on:
       db:
         condition: service_healthy
     ports:
       - "127.0.0.1:8000:8000"
+    # Contêiner sem privilégios extras e com sistema de arquivos somente leitura (OWASP AST06)
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
 
   ollama:
-    image: ollama/ollama:0.12.3
+    image: ollama/ollama:0.40.11@sha256:dea72d1e22270fe095b68fdf756d2b489d615643c5a2eaebbc5f569181e322d8
     profiles: ["local-llm"]
     volumes:
       - ollama:/root/.ollama

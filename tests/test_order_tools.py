@@ -207,3 +207,9 @@ def test_health_deep_consulta_models_do_llm_com_chave(client, monkeypatch):
     monkeypatch.setattr("commerceops.api.main.httpx.get", fake_get)
     assert client.get("/health/deep").json()["checks"]["llm"] == "ok"
     assert calls == [("https://api.groq.com/openai/v1/models", {"Authorization": "Bearer gsk-teste"})]
+
+
+def test_respostas_tem_cabecalhos_de_seguranca(client):
+    r = client.get("/health/live")
+    assert r.headers["x-content-type-options"] == "nosniff"
+    assert r.headers["cache-control"] == "no-store"
