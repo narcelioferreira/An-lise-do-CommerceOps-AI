@@ -1,0 +1,15 @@
+# Atualizações de segurança e de versão fixada (OWASP AST07: sem deriva silenciosa, sem ficar sem patch).
+version: 2
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule: { interval: weekly }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+  - package-ecosystem: docker
+    directory: /
+    schedule: { interval: weekly }
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule: { interval: weekly }

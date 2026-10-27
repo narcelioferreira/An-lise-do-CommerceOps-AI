@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import psycopg
+from psycopg import sql
 
 from commerceops.knowledge.models import Chunk
 
@@ -22,8 +23,10 @@ COLUMNS = [
 
 
 def write_chunks(conn: psycopg.Connection, chunks: list[Chunk]) -> None:
-    sql = f"INSERT INTO kb.chunks ({', '.join(COLUMNS)}) VALUES ({', '.join(['%s'] * len(COLUMNS))})"
+    insert = sql.SQL("INSERT INTO kb.chunks ({}) VALUES ({})").format(
+        sql.SQL(", ").join(map(sql.Identifier, COLUMNS)), sql.SQL(", ").join(sql.Placeholder() * len(COLUMNS))
+    )
     with conn.transaction():
         conn.execute("TRUNCATE kb.chunks")
         with conn.cursor() as cur:
-            cur.executemany(sql, [tuple(getattr(c, col) for col in COLUMNS) for c in chunks])
+            cur.executemany(insert, [tuple(getattr(c, col) for col in COLUMNS) for c in chunks])
