@@ -429,6 +429,7 @@ Outros documentos: [auditoria dos dados](docs/02_auditoria_dados.md) e
 - Mudanças de schema exigem recriar o banco: ainda não há ferramenta de migração.
 - Manifests Kubernetes validados, mas nunca aplicados em um cluster.
 
-## Licença dos dados
+## Licença
 
+O código, as políticas fictícias e os cenários simulados estão sob a licença MIT ([`LICENSE`](LICENSE)).
 O dataset Olist é distribuído pelo Kaggle sob CC BY-NC-SA 4.0 e não é redistribuído aqui.
