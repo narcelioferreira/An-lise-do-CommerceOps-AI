@@ -9,6 +9,9 @@ data/processed/
 .env.*
 !.env.example
 
+# Cache local das respostas do LLM (scripts/run_eval.py e desenvolvimento)
+.cache/
+
 # Python
 .venv/
 __pycache__/

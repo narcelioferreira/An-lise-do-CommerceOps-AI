@@ -66,6 +66,14 @@ pgvector e o build da imagem.
 - Langfuse é observabilidade, não dependência: falha dele não pode derrubar o atendimento, e o
   provedor de LLM não entra nas probes do Kubernetes (só em `/health/deep`).
 
+**Consumo de tokens do LLM (D12)**
+- Testes nunca chamam o LLM real: use LLM falso. Não remova a trava de rede de `tests/conftest.py`.
+- Desenvolvimento usa `LLM_MODEL` (`gpt-oss-20b`). O `gpt-oss-120b` (`LLM_MODEL_OFICIAL`) é só para
+  rodadas oficiais (`run_eval.py --oficial`) e o teste final, e só quando o usuário pedir.
+- Mantenha `LLM_CACHE_PATH` ligado: a mesma chamada nunca vai ao provedor duas vezes. Rodar sem cache
+  (medir variação) também exige pedido do usuário.
+- Ao diagnosticar chamadas autenticadas, imprima só o tipo da exceção e o status HTTP, nunca `str(e)`.
+
 **Dados brutos**
 - Os CSVs ficam em `data/raw/` e **nunca** são commitados. Também nunca commite `.env`.
 - Prefixos de CEP são **texto** (zero à esquerda, ex.: `"09790"`): leia com `dtype=str`.
