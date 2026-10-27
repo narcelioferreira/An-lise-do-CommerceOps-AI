@@ -15,6 +15,18 @@ Decisões de stack e infraestrutura. As decisões D1–D8, sobre dados e políti
 - A mesma API serve o Ollama local (`http://localhost:11434/v1`), então trocar de provedor é só
   configuração. Isso sustenta o experimento "modelo maior × modelo pequeno" da etapa 6.
 
+**Modelos (catálogo de produção do Groq consultado em 27/10/2026).**
+
+| Papel | Modelo | Por quê |
+|---|---|---|
+| Agente (padrão) | `openai/gpt-oss-120b` | Bom em raciocínio e chamada de ferramentas; contexto de 131 mil tokens |
+| Modelo pequeno (experimento da etapa 6) | `openai/gpt-oss-20b` | Mesma família do padrão: a comparação isola o efeito do tamanho |
+| Alternativa a avaliar | `llama-3.3-70b-versatile` | Outra família, para checar se o resultado depende do fornecedor |
+
+Os modelos `llama-*` aparecem com preço "sob consulta" na tabela de produção; os limites do plano
+gratuito devem ser conferidos no console antes de usá-los nas avaliações. A escolha do padrão é uma
+hipótese: só vira conclusão depois de medida no conjunto de avaliação.
+
 **Consequências.**
 - **Custo no Langfuse aparece como zero.** Para a métrica de custo fazer sentido, cadastrar no
   Langfuse preços de referência de modelos pagos equivalentes e reportar "custo estimado", sempre
