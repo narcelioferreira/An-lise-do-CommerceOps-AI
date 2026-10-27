@@ -147,6 +147,21 @@ def test_llm_fora_do_ar_responde_com_modelo_seguro():
     r = ask(agent, "quero devolver")
     assert not r.validated and r.intent == "outro_ou_ambiguo" and repo.writes == []
     assert "mais detalhes" in r.answer
+    assert r.llm_failures == ["classificar: APIConnectionError", "redigir: APIConnectionError"]
+
+
+class FailingWriter(ScriptedChat):
+    def __call__(self, messages, *, json_mode, name):
+        if name == "redigir":
+            raise APIConnectionError(request=httpx.Request("POST", "https://llm.invalid"))
+        return super().__call__(messages, json_mode=json_mode, name=name)
+
+
+def test_falha_so_na_redacao_mantem_a_decisao_e_registra():
+    agent, repo = make_agent(FailingWriter(ARREPENDIMENTO))
+    r = ask(agent, "me arrependi")
+    assert r.intent == "arrependimento" and r.actions == ["devolucao"]
+    assert r.llm_failures == ["redigir: APIConnectionError"] and not r.validated
 
 
 def test_sem_llm_configurado_ainda_responde():
@@ -183,10 +198,28 @@ FACTS = {"previsao_de_entrega": "20/02/2018", "total_pago": "100.00", "pagamento
         ("Atrasou [POL-ENT-001]; o pedido foi extraviado.", "proibida"),
         ("Atrasou [POL-ENT-001]; pedido " + "b" * 32, "identificador"),
         ("Atrasou [POL-ENT-001]; informe a senha do cartão para agilizar.", "proibida"),
+        ("Atrasou [POL-ENT-001]. Informe o número do pedido e o CEP para continuarmos.", "proibida"),
     ],
 )
 def test_validador_recusa(answer, erro):
     assert any(erro in e for e in validate(answer, _decision(), ALLOWED, FACTS))
+
+
+def test_validador_aceita_valor_e_data_das_politicas_do_contexto():
+    # regressão (E3): o LLM citou o limite de R$ 1.000,00 da POL-REF-001-S03 e foi recusado
+    politica = (
+        "Reembolsos acima de R$ 1.000,00 exigem aprovação humana. Compras até 31/12/2017 seguem a v1.0."
+    )
+    ok = "Atrasou [POL-ENT-001]. Acima de R$ 1.000,00 exige aprovação; até 31/12/2017 vale a v1.0."
+    assert validate(ok, _decision(), ALLOWED, FACTS, politica) == []
+    assert validate(ok, _decision(), ALLOWED, FACTS) != []  # sem o contexto, continua recusado
+
+
+def test_resposta_recusada_fica_guardada_so_para_diagnostico(client):
+    agent, _ = make_agent(ScriptedChat(ARREPENDIMENTO, "Reembolso aprovado! [POL-DEV-001]"))
+    r = ask(agent, "me arrependi")
+    assert not r.validated and r.rejected_draft == "Reembolso aprovado! [POL-DEV-001]"
+    assert "rejected_draft" not in r.model_dump()
 
 
 def test_validador_aceita_resposta_fiel():
@@ -220,6 +253,8 @@ def test_api_chat(client):
     body = {**REQ, "reference_date": "2018-01-25", "message": "me arrependi"}
     r = client.post("/v1/chat", json=body)
     assert r.status_code == 200 and r.json()["request_id"] == 3
+    # diagnóstico interno não sai na API
+    assert "llm_failures" not in r.json() and "validation_errors" not in r.json()
     assert client.post("/v1/chat", json=body | {"zip_prefix": "00000"}).status_code == 404
 
 

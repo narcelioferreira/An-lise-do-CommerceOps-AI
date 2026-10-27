@@ -1,3 +1,4 @@
+import re
 from datetime import date, datetime
 from decimal import Decimal
 
@@ -218,3 +219,13 @@ def test_encaminhamento_sempre_tem_ocorrencia(intent):
     for s in [*CASES, summary(Stage.INCONSISTENTE)]:
         d = decide(intent, s, KB, signals={Signal.JURIDICO})
         assert d.escalate and d.ticket_type
+
+
+@pytest.mark.parametrize("intent", INTENTS)
+def test_politica_mencionada_em_nota_esta_entre_as_citadas(intent):
+    # O LLM repete as notas; citar política fora das seções faz o validador recusar a resposta
+    late = summary(Stage.PRE_ENVIO, days_late=-5, late_dispatch=True)
+    for s in [*CASES, late, summary(Stage.EM_TRANSITO, days_late=8, severe_delay=True)]:
+        d = decide(intent, s, KB, signals=set(Signal))
+        mentioned = set(re.findall(r"(?:POL-[A-Z]{3}-\d{3}|LEG-CDC-\d{3})", " ".join(d.notes)))
+        assert mentioned <= set(d.policy_ids), (intent, mentioned - set(d.policy_ids))

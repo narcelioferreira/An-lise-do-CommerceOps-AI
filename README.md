@@ -23,6 +23,7 @@ ferramentas.
 - [Configuração](#configuração)
 - [Avaliação](#avaliação)
 - [Testes e CI](#testes-e-ci)
+- [Boas práticas: agentes de código e Langfuse](#boas-práticas-agentes-de-código-e-langfuse)
 - [Kubernetes](#kubernetes)
 - [Estrutura do repositório](#estrutura-do-repositório)
 - [Decisões registradas](#decisões-registradas)
@@ -37,7 +38,7 @@ ferramentas.
 | 3. Agente com validação e encaminhamento | ✅ Decisão em código, LLM sem ferramentas, validador de saída, encaminhamento para humano |
 | 4. Observabilidade e avaliação no Langfuse | ✅ Um span por passo, dados pessoais mascarados, 24 cenários, experimentos no Langfuse |
 | 5. Testes, Docker, CI/CD, Kubernetes | ✅ Testes unitários e de integração, imagem endurecida, CI com varreduras de segurança, manifests validados |
-| 6. Experimentos comparativos | 🟡 Busca medida (E1) e decisões medidas (E2); agente completo e modelos (E3) aguardam execução com LLM |
+| 6. Experimentos comparativos | ✅ Busca (E1), decisões (E2) e agente completo com dois modelos (E3) medidos e publicados |
 
 Nenhuma afirmação de ganho de qualidade, custo ou latência é feita sem medição publicada, inclusive
 quando o resultado é negativo.
@@ -61,7 +62,21 @@ cenário: é indício, não conclusão. Por isso o agente usa a vetorial (decis�
 corretos em 23/23, e acesso negado corretamente em 1/1. Regras e gabarito foram escritos pela mesma
 pessoa, então isso mede **coerência entre os dois**, não qualidade independente.
 
-**E3 — Agente completo, modelo grande × pequeno:** ainda não executado; o roteiro está pronto.
+**E3 — Agente completo, `gpt-oss-120b` × `gpt-oss-20b`** (24 cenários, Groq, uma execução por modelo):
+
+| Métrica | gpt-oss-120b | gpt-oss-20b |
+|---|---|---|
+| Intenção correta | 22/22 | 22/23 |
+| Ações e encaminhamento corretos | 22/22 | 23/23 |
+| Resposta do LLM aprovada pelo validador | 22/22 | 17/23 |
+| Texto com afirmação proibida entregue ao cliente | 0 | 0 |
+| Falha de infraestrutura (contada à parte) | 1 (limite de tokens/min) | 0 |
+
+As decisões saíram corretas com os dois modelos, porque são código (D10). A diferença está na redação:
+o 20b teve 3 respostas vazias, 1 promessa barrada e 2 recusas que são falsos positivos do validador em
+frases negativas, mantido conservador de propósito. A injeção de prompt não teve efeito em nenhum dos
+dois. O `gpt-oss-120b` segue como padrão. As primeiras execuções revelaram seis defeitos, todos
+corrigidos e cobertos por teste; a lista está em [`docs/05_experimentos.md`](docs/05_experimentos.md).
 
 ## Como uma resposta é produzida
 
@@ -217,8 +232,12 @@ Todas as variáveis estão em [`.env.example`](.env.example).
 | `ADMIN_DATABASE_URL` | scripts | Superusuário, usado só pela carga e indexação |
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `APP_DB_USER`, `APP_DB_PASSWORD` | compose | Criação do banco e do usuário da aplicação |
 | `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL` | não | Provedor com API compatível com OpenAI. Padrão: Groq com `openai/gpt-oss-120b` (D9) |
+| `LLM_MAX_RETRIES` | não | Novas tentativas em erro do provedor (padrão 2). Para a avaliação no plano gratuito do Groq, use 8 |
 | `EMBEDDING_BASE_URL`, `EMBEDDING_MODEL` | não | Embeddings para a busca vetorial. Padrão: Ollama com `bge-m3` (1024 dimensões) |
 | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL` | não | Tracing e experimentos; sem chaves, o tracing fica desligado |
+
+Espaços nas pontas dos valores são removidos ao ler a configuração: um espaço colado na chave
+invalidaria o cabeçalho HTTP.
 | `ENVIRONMENT` | não | `production` desliga `/docs` e `/openapi.json` |
 | `RATE_LIMIT_PER_MINUTE` | não | Requisições por minuto por IP nas rotas `/v1` (padrão 30) |
 
@@ -232,11 +251,14 @@ pagamento com voucher + cartão e injeção de prompt). Exigem o dataset carrega
 ```bash
 python scripts/run_eval.py --retrieval       # E1: Recall@5 e MRR@5 por método de busca
 python scripts/run_eval.py --oracle-intent   # E2: intenção do gabarito; mede decisão, ações e redação
-python scripts/run_eval.py                   # E3: agente completo (exige LLM_*)
+LLM_MAX_RETRIES=8 python scripts/run_eval.py # E3: agente completo (exige LLM_*)
 ```
 
 Métricas por cenário: intenção correta, recall de políticas, encaminhamento correto, ações corretas,
-ausência de frases proibidas e resposta validada. Todas são determinísticas. Os resultados vão para
+ausência de frases proibidas e resposta validada. Todas são determinísticas. Se o LLM falhar (limite de
+requisições, timeout), o cenário conta só em `falha_de_infra`, sem contaminar as métricas de
+qualidade. O relatório guarda, para revisão, o texto do LLM recusado pelo validador; esse diagnóstico
+nunca sai na resposta da API. Os resultados vão para
 `reports/eval/`; com `LANGFUSE_*`, cada execução também vira um experimento no Langfuse, com score por
 cenário.
 
@@ -250,7 +272,7 @@ pip-audit --skip-editable                   # vulnerabilidades conhecidas nas de
 python scripts/render_policies.py --check   # catálogo de políticas sincronizado com os YAML
 ```
 
-Em 27/10/2026: 271 testes unitários e 24 de integração. Os testes de integração carregam um
+Em 27/10/2026: 293 testes unitários e 24 de integração. Os testes de integração carregam um
 mini-dataset sintético e verificam, no próprio Postgres, o privilégio mínimo, a checagem de posse, a
 idempotência das escritas e o agente de ponta a ponta.
 
@@ -264,6 +286,56 @@ requests:
 | `integration` | Testes de integração contra Postgres + pgvector |
 | `docker` | Build da imagem |
 | `k8s` | `kustomize build` + `kubeconform` dos overlays `dev` e `staging` |
+
+## Boas práticas: agentes de código e Langfuse
+
+**Opcional.** Quem desenvolve este projeto com um agente de código (Claude Code, Cursor, Windsurf ou
+outro compatível) pode usar a
+**[Langfuse Agent Skill](https://langfuse.com/docs/api-and-data-platform/features/agent-skill)**, uma
+skill de código aberto ([github.com/langfuse/skills](https://github.com/langfuse/skills)) que segue o
+padrão aberto de Agent Skills da Anthropic. Ela dá ao agente recursos nativos do Langfuse e o orienta a
+seguir as boas práticas da plataforma.
+
+A skill é ferramenta do **agente de desenvolvimento**, não do produto: não altera o código, a API, a
+imagem nem a avaliação, e o projeto não depende dela. Só vale a pena com `LANGFUSE_*` configurado.
+
+O que a skill traz e onde isso encaixa aqui:
+
+| Recurso da skill | Uso neste projeto |
+|---|---|
+| Consulta de traces (ex.: os mais recentes com score abaixo de um limite) | Investigar respostas recusadas pelo validador e cenários reprovados no E3 |
+| Instrumentação e avaliação, com guias de referência | Manter um span por passo do agente e os scores determinísticos de `run_eval.py` |
+| Datasets: criar e adicionar itens | Levar `evals/scenarios.yaml` para um dataset versionado no Langfuse |
+| Gerenciamento de prompts, inclusive migrar do código para o Langfuse | **Não seguir aqui.** Buscar o prompt no Langfuse a cada atendimento o tornaria dependência em tempo de execução, contra o princípio de que falha do Langfuse não derruba o atendimento. Os prompts ficam em `agent.py`, versionados no git |
+| Carregamento progressivo: só o resumo fica no contexto; o resto é lido quando necessário | Economiza contexto do agente |
+
+**Instalação**
+
+```bash
+npx skills add langfuse/skills --skill "langfuse"                        # agentes detectados
+npx skills add langfuse/skills --skill "langfuse" --agent "<agent-id>"   # um agente específico
+```
+
+Ou à mão: clonar `https://github.com/langfuse/skills.git` e criar um link simbólico de
+`skills/langfuse` para o diretório de skills do agente. No Cursor, a skill também vem no plugin do
+Langfuse no marketplace.
+
+**Cuidados de segurança antes de instalar** ([OWASP Agentic Skills Top 10](https://owasp.github.io/www-project-agentic-skills-top-10/)):
+
+- **Leia antes de instalar (AST01, AST08).** Uma skill é instrução que o agente segue com as
+  permissões dele. Revise o `SKILL.md`, os arquivos de `references/` e qualquer script do repositório.
+- **Fixe a versão (AST02, AST07).** Prefira a instalação manual num commit conhecido
+  (`git clone …` e `git checkout <sha>`) e anote o SHA. Com `npx`, fixe também a versão da CLI
+  (`npx skills@<versão> …`). Nunca deixe a skill acompanhar a branch principal sem revisão.
+- **Revise de novo a cada atualização (AST05).** O conteúdo vem de fonte externa e pode mudar; trate
+  cada atualização como código novo.
+- **Credenciais com escopo mínimo (AST03).** A skill usa a CLI do Langfuse (`npx @langfuse/cli`).
+  Use chaves de um projeto do Langfuse só para desenvolvimento, nunca as de produção, e mantenha-as
+  fora do git, como as do `.env`.
+- **Inventário (AST09).** Registre quais skills estão instaladas, com versão e data da revisão.
+- **Instale no nível do usuário,** fora do repositório, e lembre que o agente lê o `.env` local.
+- **As regras do projeto prevalecem.** O `CLAUDE.md` e as decisões D1–D11 têm precedência sobre as
+  orientações da skill; mudanças sugeridas por ela passam pela revisão e pelo CI como qualquer outra.
 
 ## Kubernetes
 
@@ -310,7 +382,7 @@ tests/                  unitários e de integração (tests/integration/)
 | D6 | Schemas separados: `olist` (real) e `sim` (simulado) | [01_politicas_v1.1.md](docs/01_politicas_v1.1.md) |
 | D7 | Identidade por pedido + CEP; cliente é o `customer_unique_id` | [01_politicas_v1.1.md](docs/01_politicas_v1.1.md) |
 | D8 | Reembolso acima de R$ 1.000 exige aprovação humana (~p99 dos pagamentos) | [01_politicas_v1.1.md](docs/01_politicas_v1.1.md) |
-| D9 | LLM via API compatível com OpenAI; padrão Groq | [03_arquitetura.md](docs/03_arquitetura.md) |
+| D9 | LLM via API compatível com OpenAI; padrão Groq com `gpt-oss-120b` (confirmado no E3) | [03_arquitetura.md](docs/03_arquitetura.md) |
 | D10 | Fluxo em Python sem LangGraph; LLM sem ferramentas | [03_arquitetura.md](docs/03_arquitetura.md) |
 | D11 | Contexto do agente pela busca vetorial (medido no E1) | [03_arquitetura.md](docs/03_arquitetura.md) |
 
@@ -327,8 +399,9 @@ Outros documentos: [auditoria dos dados](docs/02_auditoria_dados.md) e
 **Da avaliação**
 - Os 24 cenários e as regras foram escritos pela mesma pessoa; falta rotulagem independente e
   medição de concordância entre anotadores.
-- O agente completo com LLM (E3) ainda não foi medido.
-- Amostras pequenas: as diferenças do E1 são indícios, não conclusões.
+- Uma execução por modelo no E3; a variação entre execuções ainda não foi medida.
+- O validador não mede qualidade de redação, e tem falsos positivos em frases negativas (2 no E3).
+- Amostras pequenas: as diferenças do E1 e do E3 são indícios, não conclusões.
 
 **Da operação**
 - O limite de requisições fica em memória, por pod; o limite global é responsabilidade do gateway.

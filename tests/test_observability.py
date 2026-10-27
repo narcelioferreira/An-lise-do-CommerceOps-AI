@@ -26,3 +26,22 @@ def test_hmac_do_pedido_nao_e_mascarado():
 
 def test_hmac_depende_da_chave():
     assert hash_id("a" * 32, "k1") != hash_id("a" * 32, "k2")
+
+
+def test_mascara_objetos_capturados_pelo_observe():
+    # regressão: o span "contextualizar" levou o OrderSummary com order_id cru para o Langfuse
+    from dataclasses import dataclass
+
+    from pydantic import BaseModel
+
+    class Resumo(BaseModel):
+        order_id: str
+        total: int
+
+    @dataclass
+    class Linha:
+        order_id: str
+
+    oid = "a" * 32
+    masked = mask_pii(data=["msg", Resumo(order_id=oid, total=3), Linha(order_id=oid)])
+    assert masked == ["msg", {"order_id": "<id>", "total": 3}, {"order_id": "<id>"}]

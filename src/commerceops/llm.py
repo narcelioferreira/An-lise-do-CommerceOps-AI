@@ -29,7 +29,7 @@ def make_chat(settings: Settings) -> ChatModel | None:
         base_url=settings.llm_base_url,
         api_key=settings.llm_api_key.get_secret_value(),
         timeout=TIMEOUT_S,
-        max_retries=MAX_RETRIES,
+        max_retries=settings.llm_max_retries,
     )
     model = settings.llm_model
 

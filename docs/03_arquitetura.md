@@ -21,11 +21,12 @@ Decisões de stack e infraestrutura. As decisões D1–D8, sobre dados e políti
 |---|---|---|
 | Agente (padrão) | `openai/gpt-oss-120b` | Bom em raciocínio e chamada de ferramentas; contexto de 131 mil tokens |
 | Modelo pequeno (experimento da etapa 6) | `openai/gpt-oss-20b` | Mesma família do padrão: a comparação isola o efeito do tamanho |
-| Alternativa a avaliar | `llama-3.3-70b-versatile` | Outra família, para checar se o resultado depende do fornecedor |
+| Alternativa a avaliar | `llama-3.3-70b-versatile` | Outra família, para checar se o resultado depende do fornecedor. **Indisponível na chave usada no E3 (27/10/2026)** |
 
 Os modelos `llama-*` aparecem com preço "sob consulta" na tabela de produção; os limites do plano
 gratuito devem ser conferidos no console antes de usá-los nas avaliações. A escolha do padrão é uma
-hipótese: só vira conclusão depois de medida no conjunto de avaliação.
+hipótese: só vira conclusão depois de medida no conjunto de avaliação. **Medida no E3**
+(`docs/05_experimentos.md`): o 120b teve todas as respostas aprovadas pelo validador (22/22); o 20b, 17/23.
 
 **Consequências.**
 - **Custo no Langfuse aparece como zero.** Para a métrica de custo fazer sentido, cadastrar no

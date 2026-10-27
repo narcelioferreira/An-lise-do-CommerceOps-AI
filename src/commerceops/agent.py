@@ -48,6 +48,8 @@ FORBIDDEN = [
         r"cancelamento (?:foi )?(?:concluído|efetivado)",
         r"(?:informe|envie|digite|passe|mande).{0,40}"
         r"(?:senha|n[úu]mero (?:completo )?do cartão|código de segurança|dados bancários)",
+        # o cliente já foi identificado antes do LLM entrar; pedir de novo confunde e ensina a repassar dados
+        r"(?:informe|envie|digite|passe|mande|confirme).{0,40}(?:n[úu]mero do pedido|\bcep\b)",
     )
 ]
 ESCALATION_WORDS = re.compile(r"encaminh|equipe|especialista|pessoa")
@@ -84,6 +86,10 @@ class ChatResult(BaseModel):
     request_id: int | None
     actions: list[str]  # escritas feitas em `sim`: "ocorrencia:<tipo>", "devolucao", "cancelamento"
     validated: bool  # False = o texto do LLM foi recusado e saiu a resposta-modelo
+    # Diagnóstico para trace e avaliação; exclude=True mantém fora da resposta da API (OWASP LLM02)
+    llm_failures: list[str] = Field(default_factory=list, exclude=True)
+    validation_errors: list[str] = Field(default_factory=list, exclude=True)
+    rejected_draft: str | None = Field(default=None, exclude=True)  # texto do LLM recusado, para revisão
 
 
 class Repository(OrderRepository, ActionRepository, Protocol):
@@ -104,7 +110,12 @@ class Agent:
         summary = get_order_summary(
             self.repo, customer, req.order_id, req.reference_date, hmac_key=self.hmac_key
         )
-        cls = self.classify(req.message)
+        failures: list[str] = []
+        try:
+            cls = self.classify(req.message)
+        except APIError as e:  # degrada (OWASP ASI08) e registra: falha de infra não é erro do modelo
+            cls = UNCLEAR
+            failures.append(f"classificar: {type(e).__name__}")
         signals = set(cls.signals) | detect_signals(req.message)
         decision = decide(
             cls.intent,
@@ -123,9 +134,14 @@ class Agent:
         )
         chunks = self.context(req.message, cls.intent, summary, decision)
         facts = _facts(summary)
-        draft = self.write(req.message, facts, decision, chunks)
+        try:
+            draft = self.write(req.message, facts, decision, chunks)
+        except APIError as e:
+            draft = ""
+            failures.append(f"redigir: {type(e).__name__}")
         allowed = {c.doc_id for c in chunks}
-        errors = validate(draft, decision, allowed, facts) if draft else ["sem resposta do LLM"]
+        context_text = " ".join(c.text for c in chunks)
+        errors = validate(draft, decision, allowed, facts, context_text) if draft else ["sem resposta do LLM"]
         answer = draft if not errors else fallback(decision, outcome)
 
         get_client().update_current_span(
@@ -138,6 +154,7 @@ class Agent:
                 "policy_ids": decision.policy_ids,
                 "escalated": decision.escalate,
                 "validation_errors": errors,
+                "llm_failures": failures,
             }
         )
         return ChatResult(
@@ -152,6 +169,9 @@ class Agent:
             actions=([f"ocorrencia:{decision.ticket_type}"] if outcome.ticket_id else [])
             + ([decision.request] if outcome.request_id and decision.request else []),
             validated=not errors,
+            llm_failures=failures,
+            validation_errors=errors,
+            rejected_draft=draft if errors and draft else None,
         )
 
     @observe(name="classificar")
@@ -170,7 +190,7 @@ class Agent:
                 name="classificar",
             )
             cls = Classification.model_validate_json(raw)
-        except (APIError, ValidationError):
+        except ValidationError:  # saída fora do formato é erro do modelo; APIError sobe para answer()
             return UNCLEAR
         if cls.intent not in self.kb.taxonomy.intent_ids or cls.confidence < MIN_CONFIDENCE:
             # sinais de risco valem mesmo sem intenção clara: só aumentam a proteção
@@ -205,17 +225,14 @@ class Agent:
             "encaminhado_para_humano": decision.escalate,
             "politicas": [{"id": c.doc_id, "titulo": c.title, "texto": c.text} for c in chunks],
         }
-        try:
-            return self.chat(
-                [
-                    {"role": "system", "content": WRITE_PROMPT},
-                    {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
-                ],
-                json_mode=False,
-                name="redigir",
-            ).strip()
-        except APIError:
-            return ""
+        return self.chat(
+            [
+                {"role": "system", "content": WRITE_PROMPT},
+                {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
+            ],
+            json_mode=False,
+            name="redigir",
+        ).strip()
 
 
 def build_agent(settings: Settings, pool: ConnectionPool) -> Agent:
@@ -264,7 +281,9 @@ def _money(text: str) -> Decimal | None:
         return None
 
 
-def validate(answer: str, decision: Decision, allowed_ids: set[str], facts: dict) -> list[str]:
+def validate(
+    answer: str, decision: Decision, allowed_ids: set[str], facts: dict, context_text: str = ""
+) -> list[str]:
     """Checagens determinísticas da resposta (OWASP Misinformation e Improper output handling)."""
     errors = []
     low = answer.lower()
@@ -281,7 +300,9 @@ def validate(answer: str, decision: Decision, allowed_ids: set[str], facts: dict
     errors += [f"afirmação proibida: {p.pattern}" for p in FORBIDDEN if p.search(low)]
     if decision.escalate and not ESCALATION_WORDS.search(low):
         errors.append("não informa o encaminhamento")
-    known = json.dumps(facts, ensure_ascii=False) + " ".join(decision.notes)
+    # Datas e valores só valem se vieram do que o sistema entregou: fatos, notas e políticas do contexto
+    # (ex.: o limite de R$ 1.000,00 da POL-REF-001-S03)
+    known = json.dumps(facts, ensure_ascii=False) + " ".join(decision.notes) + " " + context_text
     errors += [f"data não fornecida: {d}" for d in DATE_BR.findall(answer) if d not in known]
     allowed_money = {_money(m) for m in MONEY.findall(known)} | {
         _money(v) for v in re.findall(r'"(?:preco|frete|valor|total_pago)": "([\d.]+)"', known)
@@ -332,5 +353,7 @@ Regras:
 4. Cite entre colchetes o ID de cada política usada, por exemplo [POL-ENT-001]. Só cite IDs presentes
    em "politicas".
 5. Não prometa reembolso, compensação nem resultado. Nunca peça senha, cartão ou dados bancários.
-6. Se "encaminhado_para_humano" for true, diga que o caso foi encaminhado para uma pessoa da equipe.
-7. Responda em até 120 palavras, só com o texto para o cliente."""
+6. O cliente já foi identificado (pedido e CEP conferidos). Nunca peça número do pedido, CEP ou
+   outros dados de identificação.
+7. Se "encaminhado_para_humano" for true, diga que o caso foi encaminhado para uma pessoa da equipe.
+8. Responda em até 120 palavras, só com o texto para o cliente."""

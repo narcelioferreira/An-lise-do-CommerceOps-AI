@@ -61,9 +61,15 @@ def run_agent(
             scenario_id=s.scenario_id,
         )
         try:
-            return agent.answer(req).model_dump(mode="json")
+            result = agent.answer(req)
         except OrderAccessDenied:
             return None
+        # campos de diagnóstico ficam fora do model_dump (exclude) e entram só no relatório
+        return result.model_dump(mode="json") | {
+            "llm_failures": result.llm_failures,
+            "validation_errors": result.validation_errors,
+            "rejected_draft": result.rejected_draft,
+        }
 
     def evaluator(*, input, output, **_):
         result = ChatResult.model_validate(output) if output else None
