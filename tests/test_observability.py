@@ -19,6 +19,20 @@ def test_mascara_dados_pessoais_em_estruturas_aninhadas():
     }
 
 
+def test_nao_mascara_ids_de_politica_nem_carimbos_de_data():
+    # achados em traces reais: o chunk virava "<email>" e o nome da rodada, "<cartao>"
+    data = {
+        "chunk_id": "POL-DEV-001-S03@1.1",
+        "experiment_run_name": "agente-openai_gpt-oss-20b-20261027-091345",
+        "contato": "fulano@exemplo.com.br, cartão 5555555555554444",
+    }
+    assert mask_pii(data=data) == {
+        "chunk_id": "POL-DEV-001-S03@1.1",
+        "experiment_run_name": "agente-openai_gpt-oss-20b-20261027-091345",
+        "contato": "<email>, cartão <cartao>",
+    }
+
+
 def test_hmac_do_pedido_nao_e_mascarado():
     h = hash_id("a" * 32, "chave")
     assert mask_pii(data=h) == h

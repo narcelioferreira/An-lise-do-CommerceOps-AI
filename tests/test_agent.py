@@ -199,6 +199,8 @@ FACTS = {"previsao_de_entrega": "20/02/2018", "total_pago": "100.00", "pagamento
         ("Atrasou [POL-ENT-001]; pedido " + "b" * 32, "identificador"),
         ("Atrasou [POL-ENT-001]; informe a senha do cartão para agilizar.", "proibida"),
         ("Atrasou [POL-ENT-001]. Informe o número do pedido e o CEP para continuarmos.", "proibida"),
+        ("Atrasou [POL-ENT-001]. Fora do prazo, a devolução não será aceita.", "proibida"),
+        ("Atrasou [POL-ENT-001]. Não aceitamos devoluções depois de 15 dias.", "proibida"),
     ],
 )
 def test_validador_recusa(answer, erro):
@@ -220,6 +222,12 @@ def test_resposta_recusada_fica_guardada_so_para_diagnostico(client):
     r = ask(agent, "me arrependi")
     assert not r.validated and r.rejected_draft == "Reembolso aprovado! [POL-DEV-001]"
     assert "rejected_draft" not in r.model_dump()
+
+
+def test_validador_aceita_dizer_que_nada_e_negado_automaticamente():
+    # frase real do E3 (DEV-001-apos-janela): explicar que o caso não será negado é permitido
+    ok = "Atrasou [POL-ENT-001]; o pedido não será negado automaticamente."
+    assert not any("proibida" in e for e in validate(ok, _decision(), ALLOWED, FACTS))
 
 
 def test_validador_aceita_resposta_fiel():

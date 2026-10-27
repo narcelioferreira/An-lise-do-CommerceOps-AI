@@ -27,6 +27,7 @@ python scripts/audit_dataset.py          # exige os CSVs em data/raw/
 docker compose up -d db                  # Postgres + pgvector com db/init/
 python scripts/load_olist.py && python scripts/load_kb.py
 python scripts/run_eval.py [--retrieval | --oracle-intent]   # exige o dataset real carregado
+python scripts/dashboard_data.py && python scripts/langfuse_data.py   # números do painel (só leitura)
 ```
 
 Antes de considerar uma tarefa pronta: lint, formatação, `pytest` e `render_policies.py --check`
@@ -103,7 +104,7 @@ pgvector e o build da imagem.
 - Ferramentas recebem o repositório como `Protocol` (`OrderRepository`), para os testes usarem fakes.
 - Testes unitários não dependem de banco nem dos CSVs: use mini-datasets sintéticos. Todo bug
   encontrado com dados reais ganha um caso no teste correspondente.
-- Comentários explicam o **porquê** (em geral um achado dos dados ou uma decisão D1–D8), não o quê.
+- Comentários explicam o **porquê** (em geral um achado dos dados ou uma decisão D1–D12), não o quê.
 - Scripts em `scripts/` são finos; a lógica vive em `src/commerceops/`.
 
 ## Documentação de referência

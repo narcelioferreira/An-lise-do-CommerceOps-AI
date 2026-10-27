@@ -48,7 +48,8 @@ verificar identidade → consultar o pedido → classificar (LLM) → decidir (c
 
 **Por quê.**
 - O fluxo não tem laços nem bifurcações que mudem o caminho. LangGraph acrescentaria dependência e
-  indireção sem mudar o comportamento. Cada passo já é um span do Langfuse (`@observe`).
+  indireção sem mudar o comportamento. Cada passo já é um span do Langfuse (`@observe`). Decidir,
+  executar e validar ganharam span próprio depois do E3; os traces do E3 trazem os outros cinco passos.
 - Sem ferramentas, uma injeção de prompt não consegue consultar, gravar nem decidir nada: no máximo
   estraga o texto, que passa pelo validador antes de sair (ver `docs/04_seguranca.md`).
 - Decisões em código são testáveis caso a caso (`tests/test_decisions.py`) e reproduzíveis na avaliação.
@@ -88,4 +89,4 @@ compartilhada entre desenvolvimento e avaliação.
   execuções, rode com `LLM_CACHE_PATH=` (vazio): é a única situação em que a mesma chamada se repete.
 - O cache guarda o texto das respostas (dados simulados) em disco local, ignorado pelo git. Não é para
   produção: lá `LLM_CACHE_PATH` fica vazio, e o sistema de arquivos do contêiner é somente leitura.
-- O overlay `dev` do Kubernetes usa o 20b; o `staging`, o oficial.
+- No Kubernetes, a base e o overlay `dev` usam o 20b; só o overlay `staging` troca para o oficial.

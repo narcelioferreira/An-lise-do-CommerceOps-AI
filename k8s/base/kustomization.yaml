@@ -15,7 +15,9 @@ configMapGenerator:
     literals:
       - ENVIRONMENT=development
       - LLM_BASE_URL=https://api.groq.com/openai/v1
-      - LLM_MODEL=openai/gpt-oss-120b
+      # D12: a base usa o modelo leve; só o overlay staging pede o oficial. Aplicar a base direto
+      # não gasta a cota do gpt-oss-120b.
+      - LLM_MODEL=openai/gpt-oss-20b
       - LANGFUSE_BASE_URL=https://cloud.langfuse.com
       - RATE_LIMIT_PER_MINUTE=30
       # O pod só recebe tráfego do gateway (networkpolicy.yaml), então o X-Forwarded-For dele é
