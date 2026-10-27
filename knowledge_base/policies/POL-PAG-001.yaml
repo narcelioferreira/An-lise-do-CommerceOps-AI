@@ -1,0 +1,39 @@
+policy_id: POL-PAG-001
+title: Cobrança e pagamento
+category: financeiro
+source_type: fictional_policy
+fictional: true
+intents: [cobranca_pagamento]
+related: [POL-REF-001, POL-SLA-002, POL-SEG-001]
+versions:
+  - version: "1.0"
+    effective_from: 2016-01-01
+    effective_until: null
+    sections:
+      - section_id: POL-PAG-001-S01
+        title: Consulta de pagamento
+        requires_order_data: [payment_sequential, payment_type, payment_installments, payment_value]
+        escalation: none
+        text: >-
+          Explicar o meio de pagamento, o número de parcelas e o valor de cada registro de
+          pagamento do pedido. Um pedido pode ter mais de um registro de pagamento, por exemplo
+          voucher e cartão; o total pago é a soma dos registros.
+
+      - section_id: POL-PAG-001-S02
+        title: Valor cobrado diferente do esperado
+        requires_order_data: [payment_value, price, freight_value]
+        escalation: required
+        text: >-
+          Se o cliente afirma que o valor cobrado difere do total do pedido, comparar a soma dos
+          pagamentos com a soma de preço e frete dos itens. O parcelamento pode incluir encargos, e
+          uma diferença não indica erro por si só. Havendo diferença, abrir ocorrência e encaminhar
+          para revisão humana, sem afirmar que houve erro ou acerto na cobrança.
+
+      - section_id: POL-PAG-001-S03
+        title: Cobrança não reconhecida ou suspeita de fraude
+        requires_order_data: []
+        escalation: required
+        text: >-
+          Cobrança não reconhecida, contestação junto ao banco ou suspeita de fraude são
+          encaminhadas imediatamente para revisão humana. Nunca solicitar número completo de
+          cartão, código de segurança, senha ou dados bancários pelo chat.

@@ -1,0 +1,30 @@
+policy_id: POL-ENT-003
+title: Atraso grave de entrega
+category: entrega
+source_type: fictional_policy
+fictional: true
+intents: [entrega_atrasada]
+related: [POL-ENT-001, POL-SLA-002]
+versions:
+  - version: "1.0"
+    effective_from: 2016-01-01
+    effective_until: null
+    sections:
+      - section_id: POL-ENT-003-S01
+        title: Definição de atraso grave
+        requires_order_data: [order_delivered_customer_date, order_estimated_delivery_date]
+        escalation: none
+        text: >-
+          Há atraso grave quando a entrega registrada ocorreu mais de 5 dias corridos após a data
+          prevista, ou quando o pedido não foi entregue e a data de referência do atendimento está
+          mais de 5 dias corridos após a data prevista. O atraso é sempre calculado a partir das
+          datas do pedido, nunca estimado a partir do texto do cliente.
+
+      - section_id: POL-ENT-003-S02
+        title: Tratamento do atraso grave
+        requires_order_data: []
+        escalation: required
+        text: >-
+          Marcar o caso como entrega_atrasada_grave, registrar o número de dias de atraso e
+          encaminhar para análise de compensação pela equipe humana. Esta política não autoriza
+          valor de compensação ou reembolso, e o atendimento não deve mencionar valores.

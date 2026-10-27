@@ -1,0 +1,357 @@
+{
+  "audit_version": "2.0",
+  "files": {
+    "olist_customers_dataset.csv": {
+      "rows": 99441,
+      "cols": 5,
+      "bom": false,
+      "nulls": {}
+    },
+    "olist_geolocation_dataset.csv": {
+      "rows": 1000163,
+      "cols": 5,
+      "bom": false,
+      "nulls": {}
+    },
+    "olist_order_items_dataset.csv": {
+      "rows": 112650,
+      "cols": 7,
+      "bom": false,
+      "nulls": {}
+    },
+    "olist_order_payments_dataset.csv": {
+      "rows": 103886,
+      "cols": 5,
+      "bom": false,
+      "nulls": {}
+    },
+    "olist_order_reviews_dataset.csv": {
+      "rows": 99224,
+      "cols": 7,
+      "bom": false,
+      "nulls": {
+        "review_comment_title": 87656,
+        "review_comment_message": 58247
+      }
+    },
+    "olist_orders_dataset.csv": {
+      "rows": 99441,
+      "cols": 8,
+      "bom": false,
+      "nulls": {
+        "order_approved_at": 160,
+        "order_delivered_carrier_date": 1783,
+        "order_delivered_customer_date": 2965
+      }
+    },
+    "olist_products_dataset.csv": {
+      "rows": 32951,
+      "cols": 9,
+      "bom": false,
+      "nulls": {
+        "product_category_name": 610,
+        "product_name_lenght": 610,
+        "product_description_lenght": 610,
+        "product_photos_qty": 610,
+        "product_weight_g": 2,
+        "product_length_cm": 2,
+        "product_height_cm": 2,
+        "product_width_cm": 2
+      }
+    },
+    "olist_sellers_dataset.csv": {
+      "rows": 3095,
+      "cols": 4,
+      "bom": false,
+      "nulls": {}
+    },
+    "product_category_name_translation.csv": {
+      "rows": 71,
+      "cols": 2,
+      "bom": true,
+      "nulls": {}
+    }
+  },
+  "orders": {
+    "rows": 99441,
+    "status": {
+      "delivered": 96478,
+      "shipped": 1107,
+      "canceled": 625,
+      "unavailable": 609,
+      "invoiced": 314,
+      "processing": 301,
+      "created": 5,
+      "approved": 2
+    },
+    "date_ranges": {
+      "order_purchase_timestamp": [
+        "2016-09-04 21:15:19",
+        "2018-10-17 17:30:18",
+        0
+      ],
+      "order_approved_at": [
+        "2016-09-15 12:16:38",
+        "2018-09-03 17:40:06",
+        160
+      ],
+      "order_delivered_carrier_date": [
+        "2016-10-08 10:34:01",
+        "2018-09-11 19:48:28",
+        1783
+      ],
+      "order_delivered_customer_date": [
+        "2016-10-11 13:46:32",
+        "2018-10-17 13:22:46",
+        2965
+      ],
+      "order_estimated_delivery_date": [
+        "2016-09-30 00:00:00",
+        "2018-11-12 00:00:00",
+        0
+      ]
+    },
+    "monthly_volume": {
+      "2016-09": 4,
+      "2016-10": 324,
+      "2016-12": 1,
+      "2017-01": 800,
+      "2017-02": 1780,
+      "2017-03": 2682,
+      "2017-04": 2404,
+      "2017-05": 3700,
+      "2017-06": 3245,
+      "2017-07": 4026,
+      "2017-08": 4331,
+      "2017-09": 4285,
+      "2017-10": 4631,
+      "2017-11": 7544,
+      "2017-12": 5673,
+      "2018-01": 7269,
+      "2018-02": 6728,
+      "2018-03": 7211,
+      "2018-04": 6939,
+      "2018-05": 6873,
+      "2018-06": 6167,
+      "2018-07": 6292,
+      "2018-08": 6512,
+      "2018-09": 16,
+      "2018-10": 4
+    },
+    "analytical_window": {
+      "from": "2017-01-01",
+      "to": "2018-08-31",
+      "orders_in": 99092,
+      "orders_out": 349
+    },
+    "stage": {
+      "entregue": 96470,
+      "em_transito": 1107,
+      "pre_envio": 622,
+      "cancelado": 619,
+      "indisponivel": 609,
+      "inconsistente": 14
+    },
+    "inconsistent_reasons": {
+      "delivered sem data de entrega ao cliente": 8,
+      "canceled com data de entrega ao cliente": 6
+    }
+  },
+  "customers": {
+    "customer_id_unique": 99441,
+    "customer_id_equals_orders": true,
+    "customer_unique_id": 96096,
+    "customers_with_gt1_order": 2997,
+    "max_orders_per_customer": 17
+  },
+  "reviews": {
+    "rows": 99224,
+    "review_id_unique": 98410,
+    "review_id_duplicated_rows": 814,
+    "review_id_in_gt1_order": 789,
+    "orders_with_review": 98673,
+    "reviews_per_order": {
+      "1": 98126,
+      "2": 543,
+      "3": 4
+    },
+    "with_message": 40950,
+    "with_title": 11566,
+    "with_title_or_message": 42687,
+    "message_length_nonempty": {
+      "p50": 53.0,
+      "p90": 160.0,
+      "p99": 200.0,
+      "max": 208,
+      "n": 40950
+    },
+    "creation_time_of_day": {
+      "00:00:00": 99139,
+      "01:00:00": 85
+    },
+    "score": {
+      "1": 11424,
+      "2": 3151,
+      "3": 8179,
+      "4": 19142,
+      "5": 57328
+    },
+    "text_rate_by_score": {
+      "1": {
+        "with_text": 8829,
+        "total": 11424,
+        "rate": 0.773
+      },
+      "2": {
+        "with_text": 2165,
+        "total": 3151,
+        "rate": 0.687
+      },
+      "3": {
+        "with_text": 3643,
+        "total": 8179,
+        "rate": 0.445
+      },
+      "4": {
+        "with_text": 6274,
+        "total": 19142,
+        "rate": 0.328
+      },
+      "5": {
+        "with_text": 21776,
+        "total": 57328,
+        "rate": 0.38
+      }
+    },
+    "with_text_by_order_status": {
+      "delivered": 40784,
+      "shipped": 647,
+      "unavailable": 418,
+      "canceled": 412,
+      "invoiced": 217,
+      "processing": 207,
+      "created": 2
+    },
+    "creation_range": [
+      "2016-10-02",
+      "2018-08-31"
+    ]
+  },
+  "review_timing": {
+    "note": "by_date é a medida de referência; by_timestamp superestima porque a avaliação é sempre 00:00",
+    "before_purchase": {
+      "by_timestamp": 74,
+      "by_date": 64
+    },
+    "delivered_reviews": 96353,
+    "before_delivery": {
+      "by_timestamp": 8319,
+      "by_date": 5126
+    },
+    "before_delivery_with_text": {
+      "by_timestamp": 4575,
+      "by_date": 3232
+    },
+    "purchase_to_review_days": {
+      "p1": 2.09,
+      "p50": 10.74,
+      "p90": 23.49,
+      "p99": 36.46
+    }
+  },
+  "delivery": {
+    "note": "dias corridos, comparando datas (entrega normalizada × previsão)",
+    "all": {
+      "n": 96476,
+      "late": 6535,
+      "late_rate": 0.0677,
+      "late_gt_5d": 3765,
+      "late_gt_5d_rate": 0.039,
+      "days_quantiles": {
+        "p1": -36.0,
+        "p10": -22.0,
+        "p50": -12.0,
+        "p90": -2.0,
+        "p99": 18.0
+      }
+    },
+    "analytical_window": {
+      "n": 96204,
+      "late": 6532,
+      "late_rate": 0.0679,
+      "late_gt_5d": 3763,
+      "late_gt_5d_rate": 0.0391
+    },
+    "dispatched_after_seller_limit": {
+      "orders_with_carrier_date": 97657,
+      "late_dispatch": 5658,
+      "rate": 0.0579
+    }
+  },
+  "items_payments": {
+    "items": {
+      "rows": 112650,
+      "orders": 98666,
+      "orders_gt1_item": 9803,
+      "orders_gt1_seller": 1278,
+      "orders_without_items_by_status": {
+        "unavailable": 603,
+        "canceled": 164,
+        "created": 5,
+        "invoiced": 2,
+        "shipped": 1
+      }
+    },
+    "payments": {
+      "rows": 103886,
+      "orders": 99440,
+      "orders_without_payment": 1,
+      "types": {
+        "credit_card": 76795,
+        "boleto": 19784,
+        "voucher": 5775,
+        "debit_card": 1529,
+        "not_defined": 3
+      },
+      "installments_zero": 2,
+      "orders_gt1_payment_row": 2961,
+      "orders_gt1_payment_type": 2246,
+      "value": {
+        "p50": 100.0,
+        "p90": 297.27,
+        "p99": 1039.92
+      },
+      "orders_paid_gt_1000": 1174
+    },
+    "payment_vs_items": {
+      "note": "soma dos pagamentos − soma de preço+frete; diferença não implica erro (juros, voucher)",
+      "orders_compared": 98665,
+      "abs_diff_gt_1_real": 249,
+      "paid_more": 232,
+      "paid_less": 17
+    }
+  },
+  "catalog": {
+    "products": 32951,
+    "products_without_category": 610,
+    "categories": 73,
+    "categories_without_translation": [
+      "pc_gamer",
+      "portateis_cozinha_e_preparadores_de_alimentos"
+    ],
+    "sellers": 3095,
+    "items_with_unknown_seller": 0,
+    "seller_state_top5": {
+      "SP": 1849,
+      "PR": 349,
+      "MG": 244,
+      "SC": 190,
+      "RJ": 171
+    },
+    "geolocation": {
+      "rows": 1000163,
+      "zip_prefixes": 19015,
+      "rows_per_prefix_mean": 52.6
+    }
+  }
+}

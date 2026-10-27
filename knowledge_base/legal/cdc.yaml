@@ -1,0 +1,64 @@
+# Fonte legal pública: Código de Defesa do Consumidor (Lei nº 8.078/1990).
+# Armazenada separadamente das políticas fictícias, como exige o pacote de políticas.
+#
+# ATENÇÃO: os textos abaixo foram transcritos sem acesso à fonte oficial no momento da
+# criação (o ambiente não alcançava planalto.gov.br). Antes de qualquer uso no RAG, conferir
+# palavra por palavra com a URL oficial e trocar `verification_status` para `verificado`,
+# registrando a data em `verified_at`. O carregador recusa textos não verificados quando
+# STRICT_LEGAL_SOURCES=true.
+
+source_type: legal_public_source
+fictional: false
+law: "Lei nº 8.078, de 11 de setembro de 1990 (Código de Defesa do Consumidor)"
+official_url: "https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm"
+
+articles:
+  - legal_id: LEG-CDC-018
+    article: "Art. 18, caput e § 1º"
+    topic: Responsabilidade por vício do produto
+    verification_status: pendente
+    verified_at: null
+    related_policies: [POL-PRD-002]
+    text: >-
+      Art. 18. Os fornecedores de produtos de consumo duráveis ou não duráveis respondem
+      solidariamente pelos vícios de qualidade ou quantidade que os tornem impróprios ou
+      inadequados ao consumo a que se destinam ou lhes diminuam o valor, assim como por aqueles
+      decorrentes da disparidade, com as indicações constantes do recipiente, da embalagem,
+      rotulagem ou mensagem publicitária, respeitadas as variações decorrentes de sua natureza,
+      podendo o consumidor exigir a substituição das partes viciadas.
+      § 1º Não sendo o vício sanado no prazo máximo de trinta dias, pode o consumidor exigir,
+      alternativamente e à sua escolha:
+      I - a substituição do produto por outro da mesma espécie, em perfeitas condições de uso;
+      II - a restituição imediata da quantia paga, monetariamente atualizada, sem prejuízo de
+      eventuais perdas e danos;
+      III - o abatimento proporcional do preço.
+
+  - legal_id: LEG-CDC-026
+    article: "Art. 26, caput, incisos I e II, §§ 1º e 3º"
+    topic: Prazo para reclamar de vícios aparentes e ocultos
+    verification_status: pendente
+    verified_at: null
+    related_policies: [POL-PRD-002]
+    text: >-
+      Art. 26. O direito de reclamar pelos vícios aparentes ou de fácil constatação caduca em:
+      I - trinta dias, tratando-se de fornecimento de serviço e de produtos não duráveis;
+      II - noventa dias, tratando-se de fornecimento de serviço e de produtos duráveis.
+      § 1º Inicia-se a contagem do prazo decadencial a partir da entrega efetiva do produto ou do
+      término da execução dos serviços.
+      § 3º Tratando-se de vício oculto, o prazo decadencial inicia-se no momento em que ficar
+      evidenciado o defeito.
+
+  - legal_id: LEG-CDC-049
+    article: "Art. 49, caput e parágrafo único"
+    topic: Direito de arrependimento
+    verification_status: pendente
+    verified_at: null
+    related_policies: [POL-DEV-001]
+    text: >-
+      Art. 49. O consumidor pode desistir do contrato, no prazo de 7 dias a contar de sua
+      assinatura ou do ato de recebimento do produto ou serviço, sempre que a contratação de
+      fornecimento de produtos e serviços ocorrer fora do estabelecimento comercial,
+      especialmente por telefone ou a domicílio.
+      Parágrafo único. Se o consumidor exercitar o direito de arrependimento previsto neste
+      artigo, os valores eventualmente pagos, a qualquer título, durante o prazo de reflexão,
+      serão devolvidos, de imediato, monetariamente atualizados.

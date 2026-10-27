@@ -1,0 +1,50 @@
+policy_id: POL-PRD-002
+title: Produto com defeito ou avaria
+category: produto
+source_type: fictional_policy
+fictional: true
+intents: [produto_com_defeito, produto_danificado]
+related: [LEG-CDC-018, LEG-CDC-026, POL-SLA-002]
+versions:
+  - version: "1.0"
+    effective_from: 2016-01-01
+    effective_until: null
+    sections:
+      - section_id: POL-PRD-002-S01
+        title: Registro do defeito ou avaria
+        requires_order_data: [order_delivered_customer_date]
+        escalation: none
+        text: >-
+          Registrar o defeito ou dano relatado, a data em que foi percebido e as evidências
+          disponíveis. Orientar o cliente a não continuar usando o produto se isso puder aumentar o
+          risco ou o dano. Não fazer diagnóstico técnico sem evidência nem declarar mau uso sem
+          apuração.
+
+      - section_id: POL-PRD-002-S02
+        title: Prazo para reclamar
+        requires_order_data: [order_delivered_customer_date]
+        escalation: conditional
+        text: >-
+          Os prazos legais para reclamar de vícios estão em LEG-CDC-026 e esta política não os
+          reduz. Regra operacional: solicitação feita até 30 dias corridos após a entrega é
+          registrada e encaminhada para análise técnica. Solicitação feita após 30 dias corridos
+          da entrega é encaminhada para revisão humana e nunca negada automaticamente, porque a
+          classificação do produto como durável ou do vício como oculto exige análise.
+
+      - section_id: POL-PRD-002-S03
+        title: Solução
+        requires_order_data: []
+        escalation: required
+        text: >-
+          As soluções possíveis são reparo, substituição, devolução com reembolso ou abatimento,
+          conforme a análise do caso e o previsto em LEG-CDC-018. A escolha da solução é da equipe
+          humana. Defeito ou avaria não é tratado como desistência (POL-DEV-001).
+
+      - section_id: POL-PRD-002-S04
+        title: Risco à saúde ou à segurança
+        requires_order_data: []
+        escalation: required
+        text: >-
+          Se o relato indicar risco à saúde ou à segurança, como aquecimento, choque elétrico,
+          ferimento, vazamento ou alimento impróprio, orientar o cliente a interromper o uso e
+          encaminhar imediatamente para revisão humana, conforme a POL-SLA-002.

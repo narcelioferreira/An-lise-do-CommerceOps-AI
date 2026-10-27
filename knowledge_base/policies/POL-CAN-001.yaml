@@ -1,0 +1,34 @@
+policy_id: POL-CAN-001
+title: Cancelamento de pedido
+category: pedido
+source_type: fictional_policy
+fictional: true
+intents: [cancelar_pedido]
+related: [POL-DEV-001, POL-REF-001]
+versions:
+  - version: "1.0"
+    effective_from: 2016-01-01
+    effective_until: null
+    sections:
+      - section_id: POL-CAN-001-S01
+        title: Tratamento conforme o estágio do pedido
+        requires_order_data: [order_status, order_delivered_carrier_date, order_delivered_customer_date]
+        escalation: conditional
+        text: >-
+          O tratamento depende do estágio do pedido, calculado a partir do status e das datas.
+          Estágio pre_envio: registrar a solicitação de cancelamento. Estágio em_transito: não é
+          possível cancelar; orientar a recusa na entrega ou a devolução após o recebimento,
+          conforme a POL-DEV-001. Estágio entregue: tratar como devolução, conforme a POL-DEV-001.
+          Estágio cancelado: informar que o pedido já está cancelado e tratar valores pela
+          POL-REF-001. Estágio indisponivel: informar que o pedido foi cancelado por
+          indisponibilidade e tratar valores pela POL-REF-001. Estágio inconsistente: não concluir
+          e encaminhar para revisão humana.
+
+      - section_id: POL-CAN-001-S02
+        title: Confirmação do cancelamento
+        requires_order_data: []
+        escalation: none
+        text: >-
+          Ao registrar a solicitação, informar que ela está com status solicitado e que haverá
+          retorno em até 1 dia corrido. Não confirmar o cancelamento como concluído até que o
+          sistema registre a mudança de status do pedido.

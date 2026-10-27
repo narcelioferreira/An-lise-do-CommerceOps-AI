@@ -1,0 +1,117 @@
+policy_id: POL-DEV-001
+title: Devolução por desistência e direito de arrependimento
+category: devolucao
+source_type: fictional_policy
+fictional: true
+intents: [arrependimento, devolver_produto]
+related: [LEG-CDC-049, POL-PRD-001, POL-PRD-002, POL-REF-001]
+# Duas versões de propósito: a vigente é a da data da COMPRA (order_purchase_timestamp).
+# Caso-limite de teste: compra em 2017-12-20, entrega em 2018-01-05 e solicitação em 2018-01-25
+# (20 dias após a entrega) -> vale a v1.0 (30 dias), portanto está dentro da janela.
+versions:
+  - version: "1.0"
+    effective_from: 2016-01-01
+    effective_until: 2017-12-31
+    sections:
+      - section_id: POL-DEV-001-S01
+        title: Direito legal separado da regra operacional
+        requires_order_data: []
+        escalation: none
+        text: >-
+          Em compras feitas fora do estabelecimento comercial, o direito legal de arrependimento
+          é de 7 dias e está em LEG-CDC-049. Ele independe desta política. A janela operacional
+          desta política é adicional ao direito legal e nunca o substitui nem o reduz.
+
+      - section_id: POL-DEV-001-S02
+        title: Janela operacional de devolução
+        requires_order_data: [order_purchase_timestamp, order_delivered_customer_date]
+        escalation: none
+        text: >-
+          A devolução por desistência pode ser solicitada em até 30 dias corridos após a entrega
+          (order_delivered_customer_date). A versão desta política aplicável ao caso é a que
+          estava vigente na data da compra.
+
+      - section_id: POL-DEV-001-S03
+        title: Faixas de decisão
+        requires_order_data: [order_delivered_customer_date]
+        escalation: conditional
+        text: >-
+          Até 7 dias corridos após a entrega: aplica-se o direito legal de arrependimento;
+          registrar a devolução e tratar os valores conforme LEG-CDC-049 e POL-REF-001. Do 8º dia
+          até o fim da janela operacional: registrar a devolução pela política operacional, sujeita
+          às condições do produto. Após o fim da janela operacional: não negar automaticamente;
+          encaminhar para revisão humana.
+
+      - section_id: POL-DEV-001-S04
+        title: Motivo da devolução
+        requires_order_data: []
+        escalation: none
+        text: >-
+          Se o cliente quer devolver e não informou o motivo, perguntar o motivo antes de aplicar
+          esta política. Defeito ou avaria segue a POL-PRD-002; produto errado ou incompleto segue a
+          POL-PRD-001. Devolução por defeito não é tratada como desistência.
+
+      - section_id: POL-DEV-001-S05
+        title: Processo de devolução
+        requires_order_data: []
+        escalation: none
+        text: >-
+          Após registrar a solicitação, informar que as instruções de postagem ou coleta serão
+          enviadas pelo canal de atendimento. Fora do período legal, o reembolso só é marcado como
+          liberado após o recebimento e a conferência do produto. Dentro do período legal, a
+          devolução dos valores segue LEG-CDC-049; em caso de dúvida, encaminhar para revisão
+          humana.
+
+  - version: "1.1"
+    effective_from: 2018-01-01
+    effective_until: null
+    sections:
+      - section_id: POL-DEV-001-S01
+        title: Direito legal separado da regra operacional
+        requires_order_data: []
+        escalation: none
+        text: >-
+          Em compras feitas fora do estabelecimento comercial, o direito legal de arrependimento
+          é de 7 dias e está em LEG-CDC-049. Ele independe desta política. A janela operacional
+          desta política é adicional ao direito legal e nunca o substitui nem o reduz.
+
+      - section_id: POL-DEV-001-S02
+        title: Janela operacional de devolução
+        requires_order_data: [order_purchase_timestamp, order_delivered_customer_date]
+        escalation: none
+        text: >-
+          A devolução por desistência pode ser solicitada em até 15 dias corridos após a entrega
+          (order_delivered_customer_date). A versão desta política aplicável ao caso é a que
+          estava vigente na data da compra. Pedidos comprados até 31/12/2017 seguem a versão 1.0,
+          com janela de 30 dias.
+
+      - section_id: POL-DEV-001-S03
+        title: Faixas de decisão
+        requires_order_data: [order_delivered_customer_date]
+        escalation: conditional
+        text: >-
+          Até 7 dias corridos após a entrega: aplica-se o direito legal de arrependimento;
+          registrar a devolução e tratar os valores conforme LEG-CDC-049 e POL-REF-001. Do 8º dia
+          até o fim da janela operacional: registrar a devolução pela política operacional, sujeita
+          às condições do produto. Após o fim da janela operacional: não negar automaticamente;
+          encaminhar para revisão humana.
+
+      - section_id: POL-DEV-001-S04
+        title: Motivo da devolução
+        requires_order_data: []
+        escalation: none
+        text: >-
+          Se o cliente quer devolver e não informou o motivo, perguntar o motivo antes de aplicar
+          esta política. Defeito ou avaria segue a POL-PRD-002; produto errado ou incompleto segue a
+          POL-PRD-001. Devolução por defeito não é tratada como desistência.
+
+      - section_id: POL-DEV-001-S05
+        title: Processo de devolução
+        requires_order_data: []
+        escalation: none
+        text: >-
+          Após registrar a solicitação, informar que as instruções de postagem ou coleta serão
+          enviadas pelo canal de atendimento. Fora do período legal, o reembolso só é marcado como
+          liberado após o recebimento e a conferência do produto. Dentro do período legal, a
+          devolução dos valores segue LEG-CDC-049; em caso de dúvida, encaminhar para revisão
+          humana.

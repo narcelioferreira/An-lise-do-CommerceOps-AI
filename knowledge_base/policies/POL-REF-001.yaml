@@ -1,0 +1,43 @@
+policy_id: POL-REF-001
+title: Reembolso
+category: financeiro
+source_type: fictional_policy
+fictional: true
+intents: [reembolso]
+related: [POL-PAG-001, POL-SLA-002]
+versions:
+  - version: "1.0"
+    effective_from: 2016-01-01
+    effective_until: null
+    sections:
+      - section_id: POL-REF-001-S01
+        title: Status do reembolso
+        requires_order_data: [refund_status]
+        escalation: none
+        text: >-
+          Informar exatamente o status registrado no sistema de atendimento: solicitado,
+          em_analise, aprovado, processado ou nao_elegivel. Não dizer que o valor já foi pago
+          quando o status for apenas solicitado, em_analise ou aprovado. Se não houver solicitação
+          registrada, informar isso e não supor que exista.
+
+      - section_id: POL-REF-001-S02
+        title: Forma de devolução por meio de pagamento
+        requires_order_data: [payment_type, payment_installments, payment_value]
+        escalation: conditional
+        text: >-
+          Cartão de crédito (credit_card): estorno solicitado à administradora; pode aparecer na
+          fatura atual ou nas seguintes, e compras parceladas são estornadas conforme as regras da
+          administradora. Cartão de débito (debit_card): estorno na conta em até 10 dias corridos
+          após a aprovação. Boleto: devolução por transferência para conta do titular em até 10
+          dias corridos após a aprovação; os dados bancários são coletados por canal seguro, nunca
+          pelo chat. Voucher: emissão de novo voucher de mesmo valor em até 2 dias corridos após a
+          aprovação. Pedido pago com mais de um meio: cada parcela é devolvida pelo meio de origem,
+          na proporção paga. Meio not_defined: encaminhar para revisão humana.
+
+      - section_id: POL-REF-001-S03
+        title: Reembolso de valor alto
+        requires_order_data: [payment_value]
+        escalation: required
+        text: >-
+          Reembolsos acima de R$ 1.000,00 por pedido exigem aprovação humana antes de passarem para
+          o status aprovado.

@@ -1,0 +1,33 @@
+policy_id: POL-SLA-002
+title: Encaminhamento obrigatório para revisão humana
+category: atendimento
+source_type: fictional_policy
+fictional: true
+intents: []  # transversal: vale para qualquer intenção
+related: [POL-SLA-001, POL-SEG-001]
+versions:
+  - version: "1.0"
+    effective_from: 2016-01-01
+    effective_until: null
+    sections:
+      - section_id: POL-SLA-002-S01
+        title: Gatilhos de encaminhamento
+        requires_order_data: []
+        escalation: required
+        text: >-
+          Encaminhar imediatamente para revisão humana quando houver: cobrança não reconhecida,
+          contestação ou suspeita de fraude; risco à saúde ou à segurança; conflito entre política e
+          legislação ou dúvida sobre direito legal; menção a Procon, processo judicial, advogado ou
+          órgão de defesa do consumidor; dados do pedido inconsistentes; atraso grave
+          (POL-ENT-003); pedido que consta como entregue e o cliente afirma não ter recebido;
+          reembolso acima de R$ 1.000,00; solicitação fora das janelas previstas sem regra
+          aplicável; ou informação insuficiente após uma tentativa de esclarecimento.
+
+      - section_id: POL-SLA-002-S02
+        title: Como encaminhar
+        requires_order_data: []
+        escalation: required
+        text: >-
+          Ao encaminhar, informar ao cliente que o caso foi enviado para análise de uma pessoa da
+          equipe, com retorno nos prazos da POL-SLA-001, sem prometer resultado. Não negar o pedido
+          do cliente com base apenas nesta base de políticas.

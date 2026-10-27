@@ -1,0 +1,126 @@
+# Taxonomia de intenções — v1.1
+# Hipótese revisável: deve ser ajustada após a rotulagem da amostra estratificada.
+# Intenção != sentimento. Sentimento é anotado em campo separado (ver `sentiments`).
+# Identificadores sempre em ASCII, sem acentos.
+
+version: "1.1"
+
+intents:
+  - id: consultar_prazo
+    group: entrega
+    description: Cliente pergunta quando o pedido chegará ou em que etapa está, sem afirmar atraso.
+    include: ["quando chega", "qual o prazo", "onde está meu pedido", "status do pedido"]
+    exclude: "Se o cliente afirma que o prazo já venceu, usar entrega_atrasada."
+    policies: [POL-ENT-001]
+
+  - id: entrega_atrasada
+    group: entrega
+    description: Cliente afirma que o pedido passou do prazo ou reclama da demora.
+    include: ["está atrasado", "passou da data", "demorou demais"]
+    exclude: "Se o pedido consta como entregue e o cliente diz não ter recebido, usar pedido_nao_recebido."
+    policies: [POL-ENT-001, POL-ENT-003]
+
+  - id: pedido_nao_recebido
+    group: entrega
+    description: Cliente afirma não ter recebido o pedido, inclusive quando consta como entregue.
+    include: ["não recebi", "consta entregue mas não chegou", "entregaram em outro endereço"]
+    exclude: "Se o cliente só pergunta o prazo, usar consultar_prazo."
+    policies: [POL-ENT-002]
+
+  - id: produto_errado
+    group: produto
+    description: Recebeu item diferente do comprado ou divergente do anúncio (cor, modelo, tamanho).
+    include: ["veio errado", "não é o que comprei", "diferente da foto"]
+    exclude: "Item faltando é pedido_incompleto."
+    policies: [POL-PRD-001]
+
+  - id: pedido_incompleto
+    group: produto
+    description: Recebeu parte dos itens ou faltam acessórios/unidades.
+    include: ["veio só um", "faltou um item", "sem o carregador"]
+    exclude: "Item recebido quebrado é produto_danificado."
+    policies: [POL-PRD-001]
+
+  - id: produto_com_defeito
+    group: produto
+    description: Produto não funciona ou apresenta falha de funcionamento.
+    include: ["não liga", "parou de funcionar", "com defeito"]
+    exclude: "Dano físico visível no recebimento é produto_danificado."
+    policies: [POL-PRD-002]
+
+  - id: produto_danificado
+    group: produto
+    description: Produto chegou quebrado, amassado ou avariado.
+    include: ["chegou quebrado", "caixa amassada e produto riscado"]
+    exclude: "Falha de funcionamento sem dano visível é produto_com_defeito."
+    policies: [POL-PRD-002]
+
+  - id: arrependimento
+    group: pedido
+    description: Cliente desistiu da compra e quer devolver sem alegar problema no produto.
+    include: ["me arrependi", "não quero mais", "desisti"]
+    exclude: "Se alega defeito ou erro, usar a intenção do problema."
+    policies: [POL-DEV-001]
+
+  - id: devolver_produto
+    group: pedido
+    description: Cliente quer devolver e não informou o motivo.
+    include: ["quero devolver", "como faço a devolução"]
+    exclude: "Com motivo informado, usar a intenção específica (arrependimento, produto_com_defeito etc.)."
+    policies: [POL-DEV-001]
+
+  - id: cancelar_pedido
+    group: pedido
+    description: Cliente quer cancelar o pedido.
+    include: ["quero cancelar", "cancela minha compra"]
+    exclude: "Se o pedido já foi entregue, a resposta segue POL-DEV-001, mas a intenção continua cancelar_pedido."
+    policies: [POL-CAN-001]
+
+  - id: reembolso
+    group: financeiro
+    description: Pergunta sobre status, prazo ou forma de devolução de valores.
+    include: ["cadê meu estorno", "quando recebo o dinheiro de volta"]
+    exclude: "Valor cobrado errado sem pedido de devolução é cobranca_pagamento."
+    policies: [POL-REF-001]
+
+  - id: cobranca_pagamento
+    group: financeiro
+    description: Dúvida ou reclamação sobre valor cobrado, parcelas, meio de pagamento ou cobrança não reconhecida.
+    include: ["cobraram a mais", "parcelas erradas", "não reconheço essa cobrança"]
+    exclude: "Pedido de devolução de valor é reembolso."
+    policies: [POL-PAG-001]
+
+  - id: reclamar_do_atendimento
+    group: atendimento
+    description: Reclamação sobre demora ou qualidade do próprio atendimento.
+    include: ["ninguém me responde", "já abri chamado e nada"]
+    exclude: "Reclamação sobre o produto ou a entrega usa a intenção correspondente."
+    policies: [POL-SLA-001]
+
+  - id: elogio_ou_satisfacao
+    group: outro
+    description: Elogio ou satisfação sem pedido de ação.
+    include: ["chegou antes do prazo", "recomendo"]
+    exclude: "Elogio com reclamação: a intenção principal é a reclamação."
+    policies: []
+
+  - id: outro_ou_ambiguo
+    group: outro
+    description: Texto sem intenção clara de atendimento ou fora do escopo.
+    include: ["texto incompreensível", "assunto não relacionado ao pedido"]
+    exclude: "Usar só depois de descartar as demais classes."
+    policies: []
+
+# Políticas transversais: aplicam-se a qualquer intenção.
+cross_cutting_policies: [POL-SEG-001, POL-SLA-002]
+
+# Marcações derivadas dos dados do pedido. NÃO são intenções e não são rotuladas no texto.
+derived_flags:
+  - id: entrega_atrasada_grave
+    rule: "Atraso > 5 dias corridos em relação a order_estimated_delivery_date (POL-ENT-003)."
+  - id: expedicao_atrasada
+    rule: "Sem order_delivered_carrier_date após o maior shipping_limit_date dos itens (POL-ENT-001-S04)."
+  - id: estagio_inconsistente
+    rule: "Status e datas do pedido se contradizem (ver docs/01_politicas_v1.1.md, seção 4)."
+
+sentiments: [positivo, neutro, negativo, misto]

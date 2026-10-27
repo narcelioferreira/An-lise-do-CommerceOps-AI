@@ -1,0 +1,50 @@
+# Ambiente local.
+#   docker compose up -d db                      # só o banco
+#   docker compose up -d                         # banco + API
+#   docker compose --profile local-llm up -d     # + Ollama (LLM e embeddings locais)
+#
+# Langfuse: por padrão usa o Langfuse Cloud (chaves no .env). Self-hosted é etapa opcional
+# de infraestrutura (Postgres + ClickHouse + Redis + MinIO), prevista para a etapa de Kubernetes.
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: commerceops
+      POSTGRES_USER: ${POSTGRES_USER:?defina no .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina no .env}
+      APP_DB_USER: ${APP_DB_USER:?defina no .env}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?defina no .env}
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d commerceops"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${APP_DB_USER}:${APP_DB_PASSWORD}@db:5432/commerceops
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  ollama:
+    image: ollama/ollama:0.12.3
+    profiles: ["local-llm"]
+    volumes:
+      - ollama:/root/.ollama
+    ports:
+      - "127.0.0.1:11434:11434"
+
+volumes:
+  pgdata:
+  ollama:

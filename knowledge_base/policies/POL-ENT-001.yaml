@@ -1,0 +1,61 @@
+policy_id: POL-ENT-001
+title: Prazo e acompanhamento de entrega
+category: entrega
+source_type: fictional_policy
+fictional: true
+intents: [consultar_prazo, entrega_atrasada]
+related: [POL-ENT-003, POL-CAN-001]
+versions:
+  - version: "1.0"
+    effective_from: 2016-01-01
+    effective_until: null
+    sections:
+      - section_id: POL-ENT-001-S01
+        title: Referência de prazo
+        requires_order_data: [order_estimated_delivery_date]
+        escalation: none
+        text: >-
+          A previsão de entrega do pedido é a data registrada em order_estimated_delivery_date.
+          Todos os prazos deste ambiente são contados em dias corridos. O atendimento informa a
+          data prevista registrada e não promete data anterior a ela.
+
+      - section_id: POL-ENT-001-S02
+        title: Pedido dentro do prazo
+        requires_order_data: [order_status, order_delivered_customer_date, order_estimated_delivery_date]
+        escalation: none
+        text: >-
+          Se o pedido ainda não foi entregue e a data de referência do atendimento é igual ou
+          anterior à data prevista, informar a data prevista e que o pedido está dentro do prazo.
+          Não classificar o caso como atraso nem abrir ocorrência.
+
+      - section_id: POL-ENT-001-S03
+        title: Prazo vencido
+        requires_order_data: [order_status, order_delivered_customer_date, order_estimated_delivery_date]
+        escalation: conditional
+        text: >-
+          Se o pedido não foi entregue e a data de referência do atendimento é posterior à data
+          prevista, abrir ocorrência do tipo atraso_entrega, informar a data prevista original e
+          que a equipe fará uma verificação logística com retorno em até 3 dias corridos. Se o
+          atraso for superior a 5 dias corridos, aplicar também a POL-ENT-003.
+
+      - section_id: POL-ENT-001-S04
+        title: Pedido ainda não despachado
+        requires_order_data: [order_approved_at, order_delivered_carrier_date, shipping_limit_date]
+        escalation: none
+        text: >-
+          Se o pedido foi aprovado, não há registro de entrega à transportadora
+          (order_delivered_carrier_date vazio) e a data de referência é posterior ao maior prazo
+          limite de postagem dos itens (shipping_limit_date), informar que o pedido ainda não foi
+          despachado e abrir ocorrência do tipo expedicao_atrasada. Informar que o cliente pode
+          solicitar o cancelamento conforme a POL-CAN-001.
+
+      - section_id: POL-ENT-001-S05
+        title: O que não afirmar
+        requires_order_data: []
+        escalation: none
+        text: >-
+          Não afirmar que o pedido foi perdido, que a transportadora ou o vendedor é culpado, nem
+          que haverá reembolso ou compensação antes da conclusão da ocorrência. O ambiente não
+          dispõe de eventos detalhados de rastreamento: os únicos marcos disponíveis são compra,
+          aprovação do pagamento, entrega à transportadora e entrega ao cliente. Não inventar
+          movimentações intermediárias.

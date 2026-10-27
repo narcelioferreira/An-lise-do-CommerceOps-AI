@@ -1,0 +1,40 @@
+policy_id: POL-PRD-001
+title: Produto errado, incompleto ou diferente do anúncio
+category: produto
+source_type: fictional_policy
+fictional: true
+intents: [produto_errado, pedido_incompleto]
+related: [POL-DEV-001, POL-REF-001]
+versions:
+  - version: "1.0"
+    effective_from: 2016-01-01
+    effective_until: null
+    sections:
+      - section_id: POL-PRD-001-S01
+        title: Registro da divergência
+        requires_order_data: [order_item_id, product_id, product_category_name]
+        escalation: none
+        text: >-
+          Solicitar descrição objetiva do problema e, se possível, fotos do produto, da embalagem e
+          da etiqueta. Consultar os itens do pedido e registrar na ocorrência o que era esperado
+          (itens, quantidades e categorias) e o que o cliente relata ter recebido.
+
+      - section_id: POL-PRD-001-S02
+        title: Pedido com mais de um vendedor
+        requires_order_data: [seller_id]
+        escalation: none
+        text: >-
+          Um pedido pode conter itens de vendedores diferentes. Quando o cliente relatar item
+          ausente ou errado, identificar o vendedor do item afetado e registrá-lo na ocorrência.
+          Não atribuir o problema a um vendedor sem essa verificação.
+
+      - section_id: POL-PRD-001-S03
+        title: Solução
+        requires_order_data: []
+        escalation: required
+        text: >-
+          Confirmada a divergência, as soluções possíveis são troca, envio do item faltante ou
+          devolução com reembolso. O custo da devolução não é cobrado do cliente quando a
+          divergência decorre de separação, anúncio ou expedição. A confirmação e a escolha da
+          solução dependem de análise humana: o atendimento automatizado abre a ocorrência e
+          informa as opções possíveis, sem garantir nenhuma delas.

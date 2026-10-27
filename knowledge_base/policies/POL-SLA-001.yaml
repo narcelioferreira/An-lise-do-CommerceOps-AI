@@ -1,0 +1,39 @@
+policy_id: POL-SLA-001
+title: Prazos de atendimento
+category: atendimento
+source_type: fictional_policy
+fictional: true
+intents: [reclamar_do_atendimento]
+related: [POL-SLA-002]
+versions:
+  - version: "1.0"
+    effective_from: 2016-01-01
+    effective_until: null
+    sections:
+      - section_id: POL-SLA-001-S01
+        title: Prazos de resposta
+        requires_order_data: []
+        escalation: none
+        text: >-
+          A primeira resposta ocorre em até 1 dia corrido. Ocorrências de atraso, pedido não
+          recebido e divergência de produto recebem atualização em até 3 dias corridos.
+          Solicitações de cancelamento recebem retorno em até 1 dia corrido. Estes prazos medem
+          resposta ou atualização, não garantem a solução final.
+
+      - section_id: POL-SLA-001-S02
+        title: Reclamação sobre o atendimento
+        requires_order_data: [ticket_status, ticket_opened_at]
+        escalation: conditional
+        text: >-
+          Ao receber reclamação sobre o atendimento, consultar as ocorrências do cliente. Se houver
+          ocorrência aberta com prazo de atualização vencido, registrar a reclamação e encaminhar
+          para revisão humana. Se não houver ocorrência registrada, informar isso e oferecer a
+          abertura de uma.
+
+      - section_id: POL-SLA-001-S03
+        title: Registro obrigatório
+        requires_order_data: []
+        escalation: none
+        text: >-
+          Toda resposta registra a intenção detectada, as políticas consultadas com seus
+          identificadores, o nível de confiança e se houve encaminhamento humano.

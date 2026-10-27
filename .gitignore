@@ -1,5 +1,25 @@
-# Object file
-*.o
+# Dados do Kaggle: baixar seguindo o README, nunca versionar
+data/raw/*
+!data/raw/README.md
+data/interim/
+data/processed/
 
-# Ada Library Information
-*.ali
+# Segredos
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Editores e SO
+.vscode/
+.idea/
+.DS_Store

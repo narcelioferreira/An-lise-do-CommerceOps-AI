@@ -1,0 +1,49 @@
+policy_id: POL-ENT-002
+title: Pedido não recebido
+category: entrega
+source_type: fictional_policy
+fictional: true
+intents: [pedido_nao_recebido]
+related: [POL-ENT-001, POL-SLA-002]
+versions:
+  - version: "1.0"
+    effective_from: 2016-01-01
+    effective_until: null
+    sections:
+      - section_id: POL-ENT-002-S01
+        title: Pedido que não consta como entregue
+        requires_order_data: [order_status, order_delivered_customer_date, order_estimated_delivery_date]
+        escalation: none
+        text: >-
+          Consultar o status e as datas do pedido. Se o pedido não consta como entregue, o relato
+          do cliente é coerente com os dados: informar a etapa atual e tratar o prazo conforme a
+          POL-ENT-001.
+
+      - section_id: POL-ENT-002-S02
+        title: Pedido consta como entregue, mas o cliente afirma não ter recebido
+        requires_order_data: [order_status, order_delivered_customer_date]
+        escalation: required
+        text: >-
+          Se o pedido consta como entregue (order_delivered_customer_date preenchida) e o cliente
+          afirma não ter recebido, não contestar o cliente nem afirmar que a entrega de fato
+          ocorreu. Abrir ocorrência do tipo investigacao_entrega, informar retorno inicial em até
+          3 dias corridos e encaminhar o caso para revisão humana.
+
+      - section_id: POL-ENT-002-S03
+        title: Solução após investigação
+        requires_order_data: []
+        escalation: required
+        text: >-
+          Reenvio ou reembolso só podem ser oferecidos depois que a investigação confirmar extravio
+          ou entrega indevida, e a decisão é da equipe humana. O atendimento automatizado não
+          oferece nem promete solução antes disso e não encerra a ocorrência como resolvida
+          enquanto houver informação insuficiente.
+
+      - section_id: POL-ENT-002-S04
+        title: Dados do pedido inconsistentes
+        requires_order_data: [order_status, order_delivered_carrier_date, order_delivered_customer_date]
+        escalation: required
+        text: >-
+          Se o status e as datas do pedido forem contraditórios (estágio inconsistente), não tirar
+          conclusão sobre a entrega. Informar que o caso será verificado e encaminhar para revisão
+          humana.
