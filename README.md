@@ -271,7 +271,8 @@ nunca sai na resposta da API. Os resultados vão para
 cenário.
 
 **Painel e imagens de divulgação.** `reports/dashboard/` guarda um painel (`painel.html`) e cartões para
-redes sociais (`cartoes.html`, fotografados em `imagens/`). Os números vêm de dois scripts, que só leem:
+redes sociais (`cartoes.html`, fotografados em `imagens/`; o carrossel do LinkedIn está em
+`imagens/corporativo/carrossel-linkedin.pdf`). Os números vêm de dois scripts, que só leem:
 
 ```bash
 python scripts/dashboard_data.py --raw data/raw   # operação (CSVs) e resultados de reports/eval/
