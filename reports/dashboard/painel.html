@@ -100,6 +100,12 @@ svg text { font-family: var(--texto); }
 .msg.agente { background: var(--s1-fundo); }
 .feito { display: flex; flex-wrap: wrap; gap: 6px; }
 .feito span { font: 500 12px/1 var(--texto); padding: 6px 8px; border-radius: 6px; border: 1px solid var(--linha); }
+.cascata { display: grid; gap: 6px; }
+.cascata .ln { display: grid; grid-template-columns: minmax(150px, 210px) 1fr; gap: 12px; align-items: center; }
+.cascata .nm { font: 500 13px/1.2 var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cascata .tr { position: relative; height: 22px; border-left: 1px solid var(--linha); }
+.cascata .tr i { position: absolute; top: 5px; height: 12px; border-radius: 3px; min-width: 3px; }
+.cascata .tr b { position: absolute; top: 3px; font: 600 12px/1 var(--texto); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .notas { color: var(--tinta-2); font-size: 13px; display: grid; gap: 4px; margin: 0; padding-left: 18px; }
 @media (max-width: 560px) { .metrica { grid-template-columns: 1fr; } .metrica > span { grid-row: auto; } }
 </style>
@@ -184,6 +190,21 @@ svg text { font-family: var(--texto); }
         <p class="fonte" id="fonte-e1"></p>
       </article>
     </div>
+    <div class="par">
+      <article class="cartao">
+        <h2>Latência mediana por passo (Langfuse)</h2>
+        <div class="legenda"><span><i style="background:var(--s1)"></i>gpt-oss-120b</span><span><i style="background:var(--s2)"></i>gpt-oss-20b</span></div>
+        <div class="comparacao" id="g-lat"></div>
+        <p class="leitura" id="leitura-lat"></p>
+        <p class="fonte">Traces das rodadas oficiais do E3, medidos do lado do cliente (inclui rede e fila do provedor). Fonte: scripts/langfuse_data.py</p>
+      </article>
+      <article class="cartao">
+        <h2>Trace de um atendimento: atraso grave</h2>
+        <p class="leitura">Cada ferramenta, chamada ao LLM e busca vira um span. O order_id chega só como HMAC.</p>
+        <div class="cascata" id="g-trace"></div>
+        <p class="fonte" id="fonte-trace"></p>
+      </article>
+    </div>
     <article class="cartao">
       <h2>Exemplos de atendimento (simulados)</h2>
       <div class="conversas" id="conversas"></div>
@@ -198,6 +219,7 @@ svg text { font-family: var(--texto); }
 
 <script src="graficos.js"></script>
 <script src="dados.js"></script>
+<script src="langfuse.js"></script>
 <script>
 const { fmt, mes, esc } = G;
 const op = DADOS.operacao, ag = DADOS.agente, k = op.kpis;
@@ -297,6 +319,25 @@ document.getElementById("conversas").innerHTML = ag.exemplos.map((e) => {
     <p class="msg cliente">${esc(e.mensagem)}</p><p class="msg agente">${esc(e.answer)}</p>
     <div class="feito">${feito.map((f) => `<span>${f}</span>`).join("")}</div></div>`;
 }).join("");
+
+const LF = window.LANGFUSE, la = LF.rodadas["gpt-oss-120b"], lb = LF.rodadas["gpt-oss-20b"];
+const seg = (v) => v < 1 ? fmt.int(v * 1000) + " ms" : fmt.dec(v, 1) + " s";
+const maxL = lb.ponta_a_ponta.mediana;
+const barraL = (v, rot, cor) => `<div class="barra" data-tip="${rot}: ${seg(v)}"><div><i style="width:${Math.max(0.6, (v / maxL) * 100)}%;background:${cor}"></i></div><b>${seg(v)}</b></div>`;
+document.getElementById("g-lat").innerHTML = [["Verificar cliente", "verify_customer"], ["Consultar pedido", "get_order_summary"],
+  ["Classificar (LLM)", "classificar"], ["Embedding da busca", "OpenAI-embedding"], ["Redigir (LLM)", "redigir"]]
+  .map(([r, k]) => `<div class="metrica"><span>${r}</span>${barraL(la.passos[k].mediana, "120b", "var(--s1)")}${barraL(lb.passos[k].mediana, "20b", "var(--s2)")}</div>`).join("")
+  + `<div class="metrica"><span><b>Atendimento completo</b></span>${barraL(la.ponta_a_ponta.mediana, "120b", "var(--s1)")}${barraL(lb.ponta_a_ponta.mediana, "20b", "var(--s2)")}</div>`;
+document.getElementById("leitura-lat").textContent = `${fmt.pct(la.fracao_llm)} do tempo está nas chamadas ao LLM (120b). O 20b foi mais lento: gerou mais tokens de raciocínio na redação (${fmt.int(lb.tokens.redigir.raciocinio)} contra ${fmt.int(la.tokens.redigir.raciocinio)}, mediana).`;
+const ex = LF.exemplo, tot = ex.passos[0].duracao;
+const corT = { SPAN: "var(--tinta-3)", TOOL: "var(--s1)", GENERATION: "var(--chip-llm-tinta)", EMBEDDING: "var(--s2)" };
+document.getElementById("g-trace").innerHTML = ex.passos.filter((p) => !(["classificar", "redigir"].includes(p.nome) && p.tipo === "SPAN")).map((p) => {
+  const l = (p.inicio / tot) * 100, w = (p.duracao / tot) * 100;
+  const rot = l + w > 70 ? `right:calc(${100 - l - w}% + 6px);color:var(--superficie)` : `left:calc(${l + w}% + 6px)`;
+  return `<div class="ln"><span class="nm" style="padding-left:${Math.min(p.nivel, 1) * 14}px">${p.tipo === "GENERATION" ? "LLM · " : ""}${p.nome === "OpenAI-embedding" ? "embedding" : p.nome}</span>
+    <div class="tr" data-tip="${p.nome}: ${seg(p.duracao)}"><i style="left:${l}%;width:${w}%;background:${corT[p.tipo]}"></i><b style="${rot}">${seg(p.duracao)}</b></div></div>`;
+}).join("");
+document.getElementById("fonte-trace").textContent = `Trace real do E3 (gpt-oss-120b), cenário simulado ${ex.scenario_id}. Entrada da consulta no Langfuse: ${JSON.stringify(ex.consulta.entrada)}`;
 
 function rota() {
   const v = location.hash === "#agente" ? "agente" : "operacao";

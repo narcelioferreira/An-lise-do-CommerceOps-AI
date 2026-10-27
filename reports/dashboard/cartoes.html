@@ -121,11 +121,42 @@ svg text { font-family: var(--texto); }
 .ci { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .ci span { font: 500 23px/1 var(--mono); padding: 13px 16px; border-radius: 8px; border: 2px solid #1f6f3a; color: #7fd69a; background: rgba(31,111,58,.18); }
 .ci span::before { content: "✓ "; }
+
+.cascata { display: grid; gap: 8px; }
+.cascata .ln { display: grid; grid-template-columns: 330px 1fr; gap: 16px; align-items: center; }
+.cascata .nm { display: flex; align-items: center; gap: 10px; font: 500 21px/1.1 var(--mono); white-space: nowrap; overflow: hidden; }
+.cascata .tp { font: 600 13px/1 var(--mono); padding: 5px 7px; border-radius: 6px; letter-spacing: .04em; flex: none; }
+.tp.SPAN { background: var(--linha); color: var(--tinta-2); }
+.tp.TOOL { background: var(--s1-fundo); color: var(--s1); }
+.tp.GENERATION { background: var(--chip-llm); color: var(--chip-llm-tinta); }
+.tp.EMBEDDING { background: var(--s2-fundo); color: var(--s2); }
+.cascata .tr { position: relative; height: 34px; border-left: 1px solid var(--linha); }
+.cascata .tr i { position: absolute; top: 7px; height: 20px; border-radius: 4px; min-width: 4px; }
+.cascata .tr b { position: absolute; top: 5px; font: 600 19px/1 var(--texto); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.codigo { margin: 0; font: 500 17px/1.5 var(--mono); background: var(--sup); border: 2px solid var(--linha); border-radius: 14px; padding: 18px 22px; white-space: pre-wrap; color: var(--tinta-2); }
+.codigo .k { color: var(--s1); } .codigo .h { color: var(--s2); }
+.duas { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.lat { display: grid; gap: 16px; }
+.lat .m { display: grid; gap: 6px; }
+.lat .m > span { font-size: 23px; display: flex; justify-content: space-between; }
+.lat .m > span em { font: 500 17px/1 var(--mono); font-style: normal; color: var(--tinta-3); align-self: center; }
+.lat .b { display: grid; grid-template-columns: 90px 1fr 120px; gap: 14px; align-items: center; }
+.lat .b small { font: 500 18px/1 var(--mono); color: var(--tinta-3); }
+.lat .b div { height: 19px; border-radius: 6px; overflow: hidden; background: var(--linha); }
+.lat .b i { display: block; height: 100%; min-width: 4px; border-radius: 0 6px 6px 0; }
+.lat .b b { font: 700 22px/1 var(--texto); text-align: right; font-variant-numeric: tabular-nums; }
+.rastro { display: grid; gap: 0; border-left: 4px solid var(--linha); margin-left: 12px; }
+.rastro div { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 16px; padding: 16px 0 16px 34px; align-items: baseline; }
+.rastro div::before { content: ""; position: absolute; left: -14px; top: 22px; width: 24px; height: 24px; border-radius: 50%; background: var(--sup); border: 4px solid var(--s1); }
+.rastro div.ia::before { border-color: var(--chip-llm-tinta); }
+.rastro b { font: 600 27px/1.25 var(--texto); }
+.rastro span { display: block; font-size: 21px; color: var(--tinta-2); font-weight: 400; margin-top: 4px; }
+.rastro em { font: 600 24px/1 var(--mono); font-style: normal; color: var(--tinta-2); font-variant-numeric: tabular-nums; }
 </style>
 
 <!-- ======================= Série corporativa ======================= -->
 <section class="corp" id="corp-1">
-  <div class="topo"><span>CommerceOps AI</span><span>1 / 6</span></div>
+  <div class="topo"><span>CommerceOps AI</span><span>1 / 7</span></div>
   <div class="corpo">
     <h1>Um assistente de atendimento que <em>decide com regras</em> e escreve com IA</h1>
     <p class="lead">Ele responde clientes de e-commerce sobre atrasos, devoluções e defeitos. Foi construído e testado sobre pedidos reais de um marketplace brasileiro.</p>
@@ -139,7 +170,7 @@ svg text { font-family: var(--texto); }
 </section>
 
 <section class="corp" id="corp-2">
-  <div class="topo"><span>Painel da operação</span><span>2 / 6</span></div>
+  <div class="topo"><span>Painel da operação</span><span>2 / 7</span></div>
   <div class="corpo">
     <h1>O que 99 mil pedidos mostram sobre a operação</h1>
     <div class="kpis" id="c2-kpis"></div>
@@ -153,7 +184,7 @@ svg text { font-family: var(--texto); }
 </section>
 
 <section class="corp" id="corp-3">
-  <div class="topo"><span>Painel da operação</span><span>3 / 6</span></div>
+  <div class="topo"><span>Painel da operação</span><span>3 / 7</span></div>
   <div class="corpo">
     <h1>Entrega atrasada derruba a nota do cliente</h1>
     <div class="painel">
@@ -170,7 +201,7 @@ svg text { font-family: var(--texto); }
 </section>
 
 <section class="corp" id="corp-4">
-  <div class="topo"><span>Painel da operação</span><span>4 / 6</span></div>
+  <div class="topo"><span>Painel da operação</span><span>4 / 7</span></div>
   <div class="corpo">
     <h1>No Ceará, 1 em cada 7 entregas atrasa. Em São Paulo, 1 em 22.</h1>
     <div class="painel">
@@ -183,7 +214,7 @@ svg text { font-family: var(--texto); }
 </section>
 
 <section class="corp" id="corp-5">
-  <div class="topo"><span>O assistente em ação</span><span>5 / 6</span></div>
+  <div class="topo"><span>O assistente em ação</span><span>5 / 7</span></div>
   <div class="corpo">
     <h1>Cliente irritado com atraso grave</h1>
     <div class="chat" id="c5-chat"></div>
@@ -195,8 +226,22 @@ svg text { font-family: var(--texto); }
   <div class="rodape">Conversa simulada sobre um pedido real. Datas e prazos calculados pelo sistema; políticas da loja fictícias.</div>
 </section>
 
+<section class="corp" id="corp-rastro">
+  <div class="topo"><span>Observabilidade</span><span>6 / 7</span></div>
+  <div class="corpo">
+    <h1>Cada atendimento deixa um rastro que dá para auditar</h1>
+    <p class="lead" style="max-width:none">O registro real do atendimento do cartão anterior, como aparece na ferramenta de monitoramento (Langfuse):</p>
+    <div class="rastro" id="cr-rastro"></div>
+    <div class="painel">
+      <h2>Sem dados pessoais no registro</h2>
+      <p>O número do pedido vira um código irreversível (<span id="cr-hash" style="font-family:var(--mono)"></span>). E-mail, CPF, CEP, telefone e cartão são mascarados antes de sair do sistema.</p>
+    </div>
+  </div>
+  <div class="rodape">Registro real da rodada de teste com gpt-oss-120b, sobre um cenário simulado. Políticas da loja fictícias.</div>
+</section>
+
 <section class="corp" id="corp-6">
-  <div class="topo"><span>O assistente em ação</span><span>6 / 6</span></div>
+  <div class="topo"><span>O assistente em ação</span><span>7 / 7</span></div>
   <div class="corpo">
     <h1>Casos sensíveis vão para uma pessoa</h1>
     <div class="casos">
@@ -224,7 +269,7 @@ svg text { font-family: var(--texto); }
 
 <!-- ======================= Série técnica ======================= -->
 <section class="tec" id="tec-1">
-  <div class="topo"><span>CommerceOps AI</span><span>1 / 5</span></div>
+  <div class="topo"><span>CommerceOps AI</span><span>1 / 7</span></div>
   <div class="corpo">
     <h1>Agente de atendimento com <em>LLM, RAG e SQL seguro</em>, medido de ponta a ponta</h1>
     <div class="stack">
@@ -241,7 +286,7 @@ svg text { font-family: var(--texto); }
 </section>
 
 <section class="tec" id="tec-2">
-  <div class="topo"><span>Arquitetura</span><span>2 / 5</span></div>
+  <div class="topo"><span>Arquitetura</span><span>2 / 7</span></div>
   <div class="corpo">
     <h1>O LLM não tem ferramentas. Ele classifica e redige.</h1>
     <div class="passos">
@@ -254,13 +299,39 @@ svg text { font-family: var(--texto); }
       <div class="llm"><b>Redigir</b><span>mensagem do cliente entra como dado</span><em>LLM</em></div>
       <div><b>Validar</b><span>reprovou → resposta-modelo segura</span><em>código</em></div>
     </div>
-    <p class="nota">Cada passo vira um span no Langfuse, com order_id só como HMAC. Encaminhamento para humano só sobe: o LLM não consegue evitá-lo.</p>
+    <p class="nota">Ferramentas, chamadas ao LLM e a busca viram spans no Langfuse, com order_id só como HMAC. Encaminhamento para humano só sobe: o LLM não consegue evitá-lo.</p>
   </div>
   <div class="rodape">Decisões D10 (fluxo em Python, sem LangGraph) e D11 (busca vetorial, medida no E1).</div>
 </section>
 
+<section class="tec" id="tec-trace">
+  <div class="topo"><span>Observabilidade · Langfuse</span><span>3 / 7</span></div>
+  <div class="corpo">
+    <h1>Cada atendimento vira um trace</h1>
+    <div class="cascata" id="tt-cascata"></div>
+    <div class="duas">
+      <div><h3 class="rotulo-sec" style="margin-bottom:12px">get_order_summary · entrada</h3><pre class="codigo" id="tt-ent"></pre></div>
+      <div><h3 class="rotulo-sec" style="margin-bottom:12px">get_order_summary · saída</h3><pre class="codigo" id="tt-sai"></pre></div>
+    </div>
+    <div><h3 class="rotulo-sec" style="margin-bottom:12px">classificar · saída do LLM, validada contra a taxonomia</h3><pre class="codigo" id="tt-cls"></pre></div>
+    <p class="nota">O order_id chega ao Langfuse só como <b>HMAC</b>. O atraso de 11 dias foi calculado em código; o LLM só recebeu o fato pronto.</p>
+  </div>
+  <div class="rodape" id="tt-fonte"></div>
+</section>
+
+<section class="tec" id="tec-latencia">
+  <div class="topo"><span>Observabilidade · Langfuse</span><span>6 / 7</span></div>
+  <div class="corpo">
+    <h1 id="tl-titulo"></h1>
+    <div class="legenda"><span><i style="background:var(--s1)"></i>gpt-oss-120b</span><span><i style="background:var(--s2)"></i>gpt-oss-20b</span><span style="color:var(--tinta-3)">mediana por passo, em segundos</span></div>
+    <div class="lat" id="tl-lat"></div>
+    <p class="nota" id="tl-nota"></p>
+  </div>
+  <div class="rodape">Medido nos traces das rodadas oficiais do E3 (24 cenários cada), do lado do cliente: inclui rede e fila do provedor. Uma rodada por modelo; não é benchmark.</div>
+</section>
+
 <section class="tec" id="tec-3">
-  <div class="topo"><span>Experimento E1 · busca</span><span>3 / 5</span></div>
+  <div class="topo"><span>Experimento E1 · busca</span><span>4 / 7</span></div>
   <div class="corpo">
     <h1>A busca híbrida não superou a vetorial</h1>
     <div class="legenda"><span><i style="background:var(--s1)"></i>Recall@5</span><span><i style="background:var(--s2)"></i>MRR@5</span></div>
@@ -272,7 +343,7 @@ svg text { font-family: var(--texto); }
 </section>
 
 <section class="tec" id="tec-4">
-  <div class="topo"><span>Experimento E3 · agente completo</span><span>4 / 5</span></div>
+  <div class="topo"><span>Experimento E3 · agente completo</span><span>5 / 7</span></div>
   <div class="corpo">
     <h1>Mesmas decisões com os dois modelos. A diferença está na redação.</h1>
     <div class="legenda"><span><i style="background:var(--s1)"></i>gpt-oss-120b (padrão)</span><span><i style="background:var(--s2)"></i>gpt-oss-20b</span></div>
@@ -283,7 +354,7 @@ svg text { font-family: var(--texto); }
 </section>
 
 <section class="tec" id="tec-5">
-  <div class="topo"><span>Segurança</span><span>5 / 5</span></div>
+  <div class="topo"><span>Segurança</span><span>7 / 7</span></div>
   <div class="corpo">
     <h1>Cada controle aponta para o teste que o verifica</h1>
     <div class="seg">
@@ -305,6 +376,7 @@ svg text { font-family: var(--texto); }
 
 <script src="graficos.js"></script>
 <script src="dados.js"></script>
+<script src="langfuse.js"></script>
 <script>
 const { fmt, mes, esc } = G;
 const op = DADOS.operacao, ag = DADOS.agente, k = op.kpis;
@@ -375,4 +447,44 @@ const met = [["Intenção correta", "intencao_correta"], ["Ações e encaminhame
 id("t4-e3").innerHTML = met.map(([r, c]) => linhaComp(r, [
   ["120b", r120[c].media, fr(r120[c]), "var(--s1)"], ["20b", r20[c].media, fr(r20[c]), "var(--s2)"]])).join("");
 id("t4-fonte").textContent = "24 cenários, Groq, uma execução por modelo. No 120b, 1 falha de infraestrutura (limite de tokens/min) e 1 cenário de acesso negado, medidos à parte.";
+
+const LF = window.LANGFUSE, ex3 = LF.exemplo;
+const seg = (v) => v < 1 ? fmt.int(v * 1000) + " ms" : fmt.dec(v, 1) + " s";
+const passosEx = ex3.passos.filter((p) => !(["classificar", "redigir"].includes(p.nome) && p.tipo === "SPAN"));
+const totalEx = ex3.passos[0].duracao;
+id("tt-cascata").innerHTML = passosEx.map((p) => {
+  const l = (p.inicio / totalEx) * 100, w = (p.duracao / totalEx) * 100;
+  const cor = { SPAN: "var(--tinta-3)", TOOL: "var(--s1)", GENERATION: "var(--chip-llm-tinta)", EMBEDDING: "var(--s2)" }[p.tipo];
+  const dentro = l + w > 70;
+  const rot = dentro ? `right:calc(${100 - l - w}% + 10px);color:var(--fundo)` : `left:calc(${l + w}% + 10px)`;
+  const tipo = { GENERATION: "GEN", EMBEDDING: "EMB" }[p.tipo] || p.tipo;
+  return `<div class="ln"><div class="nm" style="padding-left:${Math.min(p.nivel, 1) * 26}px"><span class="tp ${p.tipo}">${tipo}</span>${p.nome === "OpenAI-embedding" ? "embedding" : p.nome}</div>
+    <div class="tr"><i style="left:${l}%;width:${w}%;background:${cor}"></i><b style="${rot}">${seg(p.duracao)}</b></div></div>`;
+}).join("");
+const json = (o) => "{\n" + Object.entries(o).map(([k, v]) =>
+  `  <span class="k">"${k}"</span>: ${typeof v === "string" && /^[0-9a-f]{16}$/.test(v) ? `<span class="h">"${v}"</span>` : esc(JSON.stringify(v))}`).join(",\n") + "\n}";
+id("tt-ent").innerHTML = json(ex3.consulta.entrada);
+id("tt-sai").innerHTML = json(ex3.consulta.saida);
+id("tt-cls").innerHTML = json(ex3.classificacao);
+id("tt-fonte").textContent = `Trace real da rodada oficial do E3 com gpt-oss-120b; cenário simulado ${ex3.scenario_id}. Fonte: scripts/langfuse_data.py`;
+
+const R = LF.rodadas, a = R["gpt-oss-120b"], b = R["gpt-oss-20b"];
+id("tl-titulo").textContent = `${fmt.pct(a.fracao_llm)} do tempo de resposta está no LLM`;
+const linhasLat = [["Verificar cliente", "verify_customer", "TOOL"], ["Consultar pedido", "get_order_summary", "TOOL"],
+  ["Classificar intenção", "classificar", "GEN"], ["Embedding da busca", "OpenAI-embedding", "EMB"], ["Redigir resposta", "redigir", "GEN"]];
+const maxLat = b.ponta_a_ponta.mediana;
+const barraLat = (nome, v, cor) => `<div class="b"><small>${nome}</small><div><i style="width:${(v / maxLat) * 100}%;background:${cor}"></i></div><b>${seg(v)}</b></div>`;
+id("tl-lat").innerHTML = linhasLat.map(([r, k, t]) => `<div class="m"><span>${r}<em>${t}</em></span>
+  ${barraLat("120b", a.passos[k].mediana, "var(--s1)")}${barraLat("20b", b.passos[k].mediana, "var(--s2)")}</div>`).join("")
+  + `<div class="m"><span><b>Atendimento completo</b><em>p90: ${seg(a.ponta_a_ponta.p90)} · ${seg(b.ponta_a_ponta.p90)}</em></span>
+  ${barraLat("120b", a.ponta_a_ponta.mediana, "var(--s1)")}${barraLat("20b", b.ponta_a_ponta.mediana, "var(--s2)")}</div>`;
+id("tl-nota").innerHTML = `O modelo menor <b>não</b> foi mais rápido: na redação, o 20b gerou ${fmt.int(b.tokens.redigir.raciocinio)} tokens de raciocínio (mediana), contra ${fmt.int(a.tokens.redigir.raciocinio)} do 120b.`;
+
+const nomesCorp = { verify_customer: ["Conferiu o cliente", "pedido + CEP"], get_order_summary: ["Consultou o pedido", "calculou: 11 dias de atraso, atraso grave"],
+  classificar: ["Entendeu o pedido do cliente", "IA: entrega atrasada, tom negativo"], "OpenAI-embedding": ["Buscou a política aplicável", "base de políticas da loja"],
+  redigir: ["Escreveu a resposta", "IA, a partir dos fatos calculados"] };
+id("cr-rastro").innerHTML = passosEx.filter((p) => nomesCorp[p.nome]).map((p) =>
+  `<div class="${p.tipo === "GENERATION" ? "ia" : ""}"><b>${nomesCorp[p.nome][0]}<span>${nomesCorp[p.nome][1]}</span></b><em>${seg(p.duracao)}</em></div>`).join("")
+  + `<div><b>Resposta conferida e enviada<span>tempo total do atendimento</span></b><em>${seg(totalEx)}</em></div>`;
+id("cr-hash").textContent = ex3.consulta.entrada.order_id_hash;
 </script>
