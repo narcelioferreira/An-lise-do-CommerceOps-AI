@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from pydantic import SecretStr
+from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     llm_base_url: str | None = None
     llm_api_key: SecretStr | None = None
     llm_model: str | None = None
+    # Novas tentativas com espera (respeita Retry-After). A avaliação sobe o valor para caber no limite
+    # de tokens por minuto do plano gratuito sem transformar 429 em resposta degradada.
+    llm_max_retries: int = 2
 
     # Embeddings: o Groq não oferece; padrão é o Ollama local com bge-m3 (1024 dimensões, kb.chunks).
     embedding_base_url: str | None = None
@@ -38,6 +41,13 @@ class Settings(BaseSettings):
 
     # Requisições por minuto por IP nas rotas /v1 (OWASP Unbounded consumption)
     rate_limit_per_minute: int = 30
+
+    @field_validator("*", mode="before")
+    @classmethod
+    def _strip(cls, v: object) -> object:
+        # Espaço colado junto de uma chave vira cabeçalho HTTP inválido, que o cliente recusa antes de
+        # sair da máquina e reporta só como "Connection error"
+        return v.strip() if isinstance(v, str) else v
 
     @property
     def langfuse_enabled(self) -> bool:

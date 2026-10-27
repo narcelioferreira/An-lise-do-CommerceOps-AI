@@ -67,7 +67,15 @@ def test_cobre_os_casos_limite_obrigatorios(prefix):
 
 def test_score_cenario_correto():
     s = next(x for x in SCENARIOS if x.scenario_id == "DEV-001-caso-limite-versao-01")
-    assert set(score(s, result()).values()) == {1.0}
+    scores = score(s, result())
+    assert scores.pop("falha_de_infra") == 0.0
+    assert set(scores.values()) == {1.0}
+
+
+def test_falha_de_infra_nao_entra_nas_metricas_de_qualidade():
+    s = next(x for x in SCENARIOS if x.scenario_id == "DEV-001-caso-limite-versao-01")
+    degraded = result(intent="outro_ou_ambiguo", actions=[], llm_failures=["classificar: RateLimitError"])
+    assert score(s, degraded) == {"falha_de_infra": 1.0}
 
 
 def test_score_penaliza_frase_proibida_e_acao_errada():

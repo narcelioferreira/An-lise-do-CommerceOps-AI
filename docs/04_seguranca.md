@@ -34,7 +34,7 @@ máximo, piorar o texto da resposta, e o texto passa por validação antes de sa
 | Risco | Controle | Onde | Verificação |
 |---|---|---|---|
 | LLM02 | `order_id` só como HMAC em traces e na trilha de auditoria | `observability.hash_id`, `tools/orders.py` | `test_order_id_nunca_registrado_cru`, `test_acoes_ficam_registradas_sem_id_cru` |
-| LLM02 | Mascaramento de IDs, e-mail, CPF, CEP, telefone e cartão em todo dado enviado ao Langfuse | `observability.mask_pii` | `tests/test_observability.py` |
+| LLM02 | Mascaramento de IDs, e-mail, CPF, CEP, telefone e cartão em todo dado enviado ao Langfuse, inclusive objetos Pydantic e dataclasses capturados por `@observe` (falha encontrada num trace real em 27/10/2026) | `observability.mask_pii` | `tests/test_observability.py`, conferência de trace real no Langfuse |
 | LLM02, ASI03 | Identidade por pedido + CEP; acesso só ao próprio `customer_unique_id`; resposta única para falhas | `tools/orders.py` | `test_verificacao_falha_com_mensagem_unica`, `test_cliente_nao_acessa_pedido_de_outro` |
 | ASI03 | Usuário de banco com privilégio mínimo (`olist` e `kb` só leitura, `sim` sem `DELETE`) | `db/init/02_app_role.sh` | `test_usuario_da_aplicacao_tem_privilegio_minimo` |
 
@@ -75,6 +75,8 @@ máximo, piorar o texto da resposta, e o texto passa por validação antes de sa
 | ASI01, ASI09 | Sinais de risco por regra somados aos do LLM: o LLM não consegue evitar um encaminhamento | `agent.answer`, `domain/decisions.py` | `test_sinal_detectado_em_codigo_encaminha_mesmo_que_o_llm_omita` |
 | LLM02, Hidden context exposure | Ao LLM só vão fatos mínimos (sem IDs de pedido, cliente ou vendedor); o prompt não tem segredo | `agent._facts` | `test_dados_enviados_ao_llm_sao_minimos` |
 | ASI08 | Timeout e tentativas limitadas; LLM ou embeddings fora do ar degradam (resposta-modelo, busca lexical) em vez de derrubar | `llm.py`, `agent.py` | `test_llm_fora_do_ar_responde_com_modelo_seguro`, `test_sem_llm_configurado_ainda_responde` |
+| ASI08, AST09 | Falha do LLM registrada em `llm_failures` e contada à parte na avaliação (`falha_de_infra`); diagnóstico fora da resposta da API | `agent.ChatResult`, `evaluation.score` | `test_falha_so_na_redacao_mantem_a_decisao_e_registra`, `test_falha_de_infra_nao_entra_nas_metricas_de_qualidade` |
+| LLM02 | Espaços nas pontas de chaves e URLs removidos ao ler o ambiente (cabeçalho inválido falhava como "Connection error") | `config.Settings` | `test_remove_espacos_colados_em_chaves_e_urls` |
 | ASI10 | Fluxo finito e sem laços; nenhuma nova tentativa automática da geração | `agent.py` (D10) | revisão de código |
 | Unbounded consumption | Mensagem ≤ 1.000 caracteres, saída ≤ 2.048 tokens, 30 requisições/min por IP (inviabiliza testar CEPs em massa) | `agent.ChatRequest`, `llm.py`, `api/main.py` | `test_api_chat_recusa_entrada_fora_dos_limites`, `test_limite_de_requisicoes_por_ip` |
 | ASI03 | Verificação de identidade antes de qualquer chamada ao LLM | `agent.answer` | `test_verificacao_falha_antes_de_chamar_o_llm` |

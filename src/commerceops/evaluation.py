@@ -48,9 +48,15 @@ def load_scenarios(path: Path = DEFAULT_SCENARIOS) -> list[Scenario]:
 
 
 def score(s: Scenario, result: ChatResult | None) -> dict[str, float]:
-    """`result` None = acesso negado. Cada métrica vale 0 ou 1, exceto o recall de políticas."""
+    """`result` None = acesso negado. Cada métrica vale 0 ou 1, exceto o recall de políticas.
+
+    Se o LLM falhou (timeout, 429), o cenário conta só em `falha_de_infra`: a resposta degradada não
+    diz nada sobre a qualidade do modelo e não pode entrar nas outras médias.
+    """
     if s.access_denied or result is None:
         return {"acesso_negado_correto": float(s.access_denied and result is None)}
+    if result.llm_failures:
+        return {"falha_de_infra": 1.0}
     expected = set(s.expected_policy_ids)
     answer = result.answer.lower()
     return {
@@ -60,6 +66,7 @@ def score(s: Scenario, result: ChatResult | None) -> dict[str, float]:
         "acoes_corretas": float(set(result.actions) == set(s.expected_actions)),
         "sem_frase_proibida": float(not any(p.lower() in answer for p in s.must_not_say)),
         "resposta_validada": float(result.validated),
+        "falha_de_infra": 0.0,
     }
 
 

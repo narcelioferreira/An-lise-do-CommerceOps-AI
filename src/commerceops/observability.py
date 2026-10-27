@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import hmac
 import logging
@@ -9,6 +10,7 @@ import re
 from typing import Any
 
 from langfuse import Langfuse
+from pydantic import BaseModel
 
 from commerceops.config import Settings
 
@@ -27,6 +29,12 @@ _PII_PATTERNS = [
 
 
 def mask_pii(*, data: Any, **_: Any) -> Any:
+    # @observe captura argumentos como objetos (ex.: OrderSummary): vira dict antes de mascarar,
+    # senão o SDK serializa depois e o dado sai cru
+    if isinstance(data, BaseModel):
+        data = data.model_dump(mode="json")
+    elif dataclasses.is_dataclass(data) and not isinstance(data, type):
+        data = dataclasses.asdict(data)
     if isinstance(data, str):
         for pattern, label in _PII_PATTERNS:
             data = pattern.sub(label, data)

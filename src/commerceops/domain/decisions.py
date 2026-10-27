@@ -165,7 +165,7 @@ def _delivery(b: _Builder, s: OrderSummary, intent: str) -> None:
     b.cite("POL-ENT-001", 1, 5)
     estimated = _fmt(s.estimated_delivery_date)
     if s.late_dispatch:
-        b.cite("POL-ENT-001", 4).ticket("expedicao_atrasada")
+        b.cite("POL-ENT-001", 4).cite("POL-CAN-001", 1).ticket("expedicao_atrasada")
         b.note("O pedido ainda não foi despachado e passou do prazo de postagem; ocorrência aberta.")
         b.note("O cliente pode pedir o cancelamento (POL-CAN-001).")
     elif s.days_late is not None and s.days_late <= 0:
