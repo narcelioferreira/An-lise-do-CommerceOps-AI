@@ -138,45 +138,62 @@ ao [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/) (ASI) 
 
 Pré-requisitos: Python 3.12, [uv](https://docs.astral.sh/uv/) e Docker com Compose.
 
+Os passos 1 a 4 bastam para ter o sistema funcionando. Os passos 5 e 6 são opcionais e acrescentam
+a IA e a busca vetorial; cada um pode ser feito depois, a qualquer momento.
+
 **1. Configuração e dependências**
 
 ```bash
 cp .env.example .env     # troque as senhas e gere ORDER_ID_HMAC_KEY (comando no próprio arquivo)
 uv sync --locked         # instala exatamente as versões e hashes do uv.lock
 source .venv/bin/activate
+set -a; source .env; set +a
 ```
 
-**2. Dados** — baixe os 9 CSVs do Kaggle em `data/raw/` (instruções em
+**2. Dados**: baixe os 9 CSVs do Kaggle em `data/raw/` (instruções em
 [`data/raw/README.md`](data/raw/README.md)). Os CSVs nunca são versionados.
 
 **3. Banco e carga**
 
 ```bash
 docker compose up -d db              # Postgres 16 + pgvector; cria schemas e usuário da aplicação
-set -a; source .env; set +a
 python scripts/audit_dataset.py      # confere os dados → reports/audit/
-python scripts/load_olist.py         # carrega o dataset em olist.* (~10 s)
-python scripts/load_kb.py            # indexa políticas e CDC em kb.chunks
+python scripts/load_olist.py         # carrega o dataset em olist.* (~15 s)
+python scripts/load_kb.py            # indexa políticas e CDC em kb.chunks (busca lexical)
 ```
 
 `--raw-dir <pasta>` nos dois primeiros scripts aponta para outra pasta de CSVs.
 
-**4. Embeddings (opcional, recomendado)** — sem eles só a busca lexical funciona.
+**4. API**
+
+```bash
+docker compose up -d api             # http://localhost:8000 (documentação em /docs fora de produção)
+curl -s localhost:8000/health/ready  # {"status":"ok","database":"ok"}
+```
+
+Teste com o exemplo da seção [API](#api). Sem chave de LLM, o atendimento já funciona: decide,
+registra e encaminha em código, e responde com a resposta-modelo segura ("Pode nos contar com mais
+detalhes…").
+
+O `.env` também serve para rodar a API fora do Docker: `uvicorn commerceops.api.main:app --port 8000`.
+
+**5. IA (opcional, recomendado)**: crie uma chave gratuita em <https://console.groq.com> (API Keys),
+coloque em `LLM_API_KEY` no `.env` e reinicie a API:
+
+```bash
+docker compose up -d --force-recreate api
+```
+
+**6. Embeddings (opcional)**: sem eles, a busca é só lexical. Com eles, o agente usa a vetorial (D11).
 
 ```bash
 docker compose --profile local-llm up -d ollama
 docker compose exec ollama ollama pull bge-m3
+# no .env: EMBEDDING_BASE_URL=http://localhost:11434/v1
+set -a; source .env; set +a
 python scripts/load_kb.py            # reindexa, agora com embeddings
+docker compose up -d --force-recreate api
 ```
-
-**5. API**
-
-```bash
-docker compose up -d api             # http://localhost:8000 (documentação em /docs fora de produção)
-```
-
-O `.env` também serve para rodar a API fora do Docker:
-`uvicorn commerceops.api.main:app --port 8000`.
 
 > **Banco criado antes de 27/10/2026?** `db/init/` ganhou índices e uma permissão nova. Scripts de
 > `docker-entrypoint-initdb.d` só rodam na criação do volume: recrie com `docker compose down -v` e
@@ -236,7 +253,7 @@ Todas as variáveis estão em [`.env.example`](.env.example).
 | `LLM_MODEL_OFICIAL` | não | Modelo das rodadas oficiais e do teste final: `openai/gpt-oss-120b` (D12) |
 | `LLM_CACHE_PATH` | não | Cache local das respostas reais (SQLite): a mesma chamada nunca vai ao provedor duas vezes. Vazio em produção (D12) |
 | `LLM_MAX_RETRIES` | não | Novas tentativas em erro do provedor (padrão 2). Para a avaliação no plano gratuito do Groq, use 8 |
-| `EMBEDDING_BASE_URL`, `EMBEDDING_MODEL` | não | Embeddings para a busca vetorial. Padrão: Ollama com `bge-m3` (1024 dimensões) |
+| `EMBEDDING_BASE_URL`, `EMBEDDING_MODEL` | não | Embeddings para a busca vetorial. Padrão: desligado (só busca lexical); com o Ollama, `bge-m3` (1024 dimensões) |
 | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL` | não | Tracing e experimentos; sem chaves, o tracing fica desligado |
 | `ENVIRONMENT` | não | `production` desliga `/docs` e `/openapi.json` |
 | `RATE_LIMIT_PER_MINUTE` | não | Requisições por minuto por IP nas rotas `/v1` (padrão 30) |
