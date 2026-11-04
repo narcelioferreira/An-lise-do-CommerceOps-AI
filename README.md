@@ -369,8 +369,9 @@ Langfuse no marketplace.
   fora do git, como as do `.env`.
 - **Inventário (AST09).** Registre quais skills estão instaladas, com versão e data da revisão.
 - **Instale no nível do usuário,** fora do repositório, e lembre que o agente lê o `.env` local.
-- **As regras do projeto prevalecem.** O `CLAUDE.md` e as decisões D1–D11 têm precedência sobre as
-  orientações da skill; mudanças sugeridas por ela passam pela revisão e pelo CI como qualquer outra.
+- **As regras do projeto prevalecem.** As decisões D1–D12 e os controles de `docs/04_seguranca.md` têm
+  precedência sobre as orientações da skill; mudanças sugeridas por ela passam pela revisão e pelo CI
+  como qualquer outra.
 
 ## Kubernetes
 
